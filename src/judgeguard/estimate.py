@@ -15,7 +15,7 @@ from dataclasses import dataclass
 
 from .corpus import Corpus
 from .scorers.foundry import coverage
-from .scorers.foundry.rows import inputs_for, to_eval_row
+from .scorers.foundry.rows import inputs_for, to_eval_row, ungradable_reason
 
 CHARS_PER_TOKEN = 4.0
 
@@ -29,7 +29,11 @@ PROMPT_OVERHEAD_TOKENS = {
     "intent_resolution": 2253,
     "tool_call_accuracy": 2787,
     "task_adherence": 1967,
-    "task_completion": 1883,
+    "response_completeness": 1883,
+    "tool_selection": 2121,
+    "tool_input_accuracy": 904,
+    "tool_output_utilization": 2242,
+    "tool_call_success": 2550,
     "retrieval_ranking": 0,
     "injection_exposure": 0,
 }
@@ -117,6 +121,7 @@ def estimate_run(
     backend: str = "foundry",
     model_config: bool = True,
     project: bool = False,
+    include_experimental: bool = False,
     repeat: int = 1,
     price_in: float | None = None,
     price_out: float | None = None,
@@ -133,13 +138,21 @@ def estimate_run(
     result = run(
         corpus, Bm25Retriever(corpus.documents), TemplateCandidate(), variant=variant
     )
-    specs = coverage.runnable_with(model_config=model_config, project=project)
+    specs = coverage.runnable_with(
+        model_config=model_config,
+        project=project,
+        include_experimental=include_experimental,
+    )
 
     method = ""
-    totals: dict[str, list[int]] = {spec.dimension: [0, 0, 0] for spec in specs}
+    # [input tokens, output tokens, overhead tokens, calls]
+    totals: dict[str, list[int]] = {spec.dimension: [0, 0, 0, 0] for spec in specs}
     for outcome in result.outcomes:
         row = to_eval_row(outcome.transcript, outcome.case)
         for spec in specs:
+            if ungradable_reason(spec, row):
+                continue  # the scorer will not call it, so the estimate must not bill it
+            totals[spec.dimension][3] += 1
             if spec.requires in (coverage.COMPUTABLE, coverage.AZURE_AI_PROJECT):
                 continue
             payload = inputs_for(spec, row)
@@ -155,7 +168,7 @@ def estimate_run(
             dimension=spec.dimension,
             evaluator=spec.evaluator,
             metered=_metering(spec),
-            calls=cases * repeat,
+            calls=totals[spec.dimension][3] * repeat,
             input_tokens=totals[spec.dimension][0] * repeat,
             output_tokens=totals[spec.dimension][1] * repeat,
             overhead_tokens=totals[spec.dimension][2] * repeat,
@@ -187,7 +200,11 @@ def measure_overhead() -> dict[str, int]:
         "intent_resolution": "intent_resolution.prompty",
         "tool_call_accuracy": "tool_call_accuracy.prompty",
         "task_adherence": "task_adherence.prompty",
-        "task_completion": "response_completeness.prompty",
+        "response_completeness": "response_completeness.prompty",
+        "tool_selection": "tool_selection.prompty",
+        "tool_input_accuracy": "tool_input_accuracy.prompty",
+        "tool_output_utilization": "tool_output_utilization.prompty",
+        "tool_call_success": "tool_call_success.prompty",
     }
     measured = {}
     for dimension, filename in filenames.items():

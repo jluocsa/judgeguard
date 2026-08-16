@@ -3,8 +3,9 @@
 Which Azure AI Foundry evaluator covers which judgeguard dimension, and — the part
 that actually decides anything — what each one needs before it can run.
 
-Verified by introspecting the installed `azure-ai-evaluation` package: constructor
-signatures and prompty input declarations, not documentation.
+Verified by introspecting the installed `azure-ai-evaluation` package (1.18.3):
+constructor signatures, declared singleton inputs and prompty input declarations, not
+documentation.
 
 ```console
 $ judgeguard coverage
@@ -17,15 +18,24 @@ $ judgeguard coverage
 | `RetrievalEvaluator` | retrieval | model config | query, context |
 | `IntentResolutionEvaluator` | intent_resolution | model config | query, response, tool_definitions |
 | `ToolCallAccuracyEvaluator` | tool_call_accuracy | model config | query, response, tool_calls, tool_definitions |
-| `TaskAdherenceEvaluator` | task_adherence | model config | system_message, query, response, tool_calls |
-| `ResponseCompletenessEvaluator` | task_completion | model config | response, ground_truth |
+| `TaskAdherenceEvaluator` | task_adherence | model config | query, response, tool_definitions |
+| `ResponseCompletenessEvaluator` | response_completeness | model config | response, ground_truth |
 | `DocumentRetrievalEvaluator` | retrieval_ranking | **nothing** | retrieval_ground_truth, retrieved_documents |
 | `IndirectAttackEvaluator` | injection_exposure | project connection | query, response |
 
+Four more are shipped, but not as public API:
+
+| Evaluator | Dimension | Requires | Exported | Inputs |
+|---|---|---|---|---|
+| `_ToolSelectionEvaluator` | tool_selection | model config | no | query, response, tool_calls, tool_definitions |
+| `_ToolInputAccuracyEvaluator` | tool_input_accuracy | model config | no | query, response, tool_calls, tool_definitions |
+| `_ToolOutputUtilizationEvaluator` | tool_output_utilization | model config | yes | query, response, tool_definitions |
+| `_ToolCallSuccessEvaluator` | tool_call_success | model config | yes | response, tool_definitions |
+
 ## The finding that matters
 
-**Seven of the nine need only a bare model config** — an endpoint, a deployment name
-and a key. Not a Foundry project, not a workspace, not a hub.
+**Seven of the nine stable evaluators need only a bare model config** — an endpoint, a
+deployment name and a key. Not a Foundry project, not a workspace, not a hub.
 
 That is the difference between "point the judge at the service" being a configuration
 change and being a procurement conversation, and it is invisible from any capability
@@ -38,14 +48,48 @@ comparison, not the feature list.
 ```python
 from judgeguard.scorers.foundry import coverage
 
-coverage.runnable_with(model_config=True, project=False)   # 8 of 9
-coverage.runnable_with(model_config=False, project=False)  # 1 of 9
+coverage.runnable_with(model_config=True, project=False)   # 8 of 9 stable
+coverage.runnable_with(model_config=False, project=False)  # 1 of 9 stable
+coverage.runnable_with(model_config=True, project=True, include_experimental=True)
 ```
+
+## The four tool evaluators are experimental, and that is load-bearing
+
+A plan that lists tool selection, tool input accuracy, tool output utilization and tool
+call success as available evaluators is listing four classes that the SDK prefixes with
+an underscore and marks experimental on construction. Two of the four are not exported
+from the package namespace at all and can only be reached by importing their private
+module path.
+
+judgeguard maps them, because pretending they do not exist is not useful. It excludes
+them unless `include_experimental=True`, because a private class can be renamed in a
+patch release and a run that silently depended on one would change its score with no
+change on this side. `FoundryScorer` resolves them through the module path recorded on
+the spec and fails with the installed SDK version named, so the breakage is legible.
+
+**There is no `TaskCompletionEvaluator` in 1.18.3.** Task completion and response
+completeness are not two shipped evaluators; `ResponseCompletenessEvaluator` is the one
+that exists, and judgeguard names its dimension `response_completeness` after it rather
+than implying coverage it does not have.
+
+## Reference answers are not document identifiers
+
+`ResponseCompletenessEvaluator` scores a response against `ground_truth`, and
+`ground_truth` is reference **text**. A corpus case supplies it through
+`expected_answer`. `expected_sources` is a different field answering a different
+question — which documents retrieval should have reached — and it feeds
+`retrieval_ground_truth`, the labelled input to `DocumentRetrievalEvaluator`.
+
+Handing document identifiers to a reference-scored evaluator returns a confident number
+describing how well an answer resembles a list of ids. A case that declares no
+reference is reported as ungradable on those dimensions rather than scored, and
+`estimate` does not bill for the call, because an absent reference is a gap in the
+corpus and scoring it zero would blame the candidate for it.
 
 ## They map onto existing dimensions
 
 No new metrics have to be invented. The agent evaluators — intent resolution,
-tool-call accuracy, task adherence, task completion — line up with dimensions any
+tool-call accuracy, task adherence, response completeness — line up with dimensions any
 agent eval already cares about, which means adopting the service is a change of
 scoring backend rather than a change of what you measure.
 
@@ -117,6 +161,14 @@ version is installed, so the constants can be refreshed rather than trusted.
 ## Status
 
 The coverage map, the row conversion and the results merge are implemented and tested
-offline on every commit. The live service call in `FoundryScorer` has **not** been
-executed against a real endpoint — the `tool_calls` payload shape in particular should
-be confirmed on a first real run before anyone relies on `tool_call_accuracy`.
+offline on every commit, including a test that every evaluator the map claims is still
+present in the installed SDK.
+
+The live service call in `FoundryScorer` has **not** returned a real score yet. One
+thing is already known about it: the SDK logs *"Conversation history could not be
+parsed; falling back to raw input. Evaluator accuracy will degrade"* when handed
+judgeguard's plain-string `query` and `response`. The agent evaluators want
+message-shaped input, so that conversion has to be built before `tool_call_accuracy`
+or `task_adherence` can be relied on. A degraded score that still returns a number is
+exactly the failure mode this repository exists to make visible, so it is recorded here
+rather than discovered later.

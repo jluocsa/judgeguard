@@ -47,7 +47,49 @@ def test_credentials_gate_which_evaluators_can_run():
     assert len(with_model) > len(nothing)
 
     everything = coverage.runnable_with(model_config=True, project=True)
-    assert len(everything) == len(coverage.COVERAGE)
+    assert len(everything) == len(coverage.stable())
+
+
+def test_experimental_evaluators_are_opt_in():
+    """A private SDK class must never be picked up by default.
+
+    They are listed so the coverage map tells the truth about what exists, and
+    excluded so an upgrade that renames one cannot silently change a run.
+    """
+    default = coverage.runnable_with(model_config=True, project=True)
+    assert all(s.stability == coverage.STABLE for s in default)
+
+    opted_in = coverage.runnable_with(
+        model_config=True, project=True, include_experimental=True
+    )
+    assert len(opted_in) == len(coverage.COVERAGE)
+    assert set(default) < set(opted_in)
+
+
+def test_experimental_specs_say_where_to_import_an_unexported_class():
+    evaluation = pytest.importorskip(
+        "azure.ai.evaluation", reason="needs the foundry extra"
+    )
+    for spec in coverage.experimental():
+        if not hasattr(evaluation, spec.evaluator):
+            assert spec.module, (
+                f"{spec.evaluator} is not exported by the SDK and the spec gives no "
+                "module to import it from"
+            )
+
+
+def test_the_sdk_ships_every_evaluator_the_map_claims():
+    """The map is only useful if it describes the installed package."""
+    import importlib
+
+    evaluation = pytest.importorskip(
+        "azure.ai.evaluation", reason="needs the foundry extra"
+    )
+    for spec in coverage.COVERAGE:
+        if hasattr(evaluation, spec.evaluator):
+            continue
+        module = importlib.import_module(spec.module)
+        assert hasattr(module, spec.evaluator), f"{spec.evaluator} is gone"
 
 
 def test_a_bare_model_config_covers_most_of_the_map():
@@ -106,6 +148,61 @@ def test_missing_input_fails_loud(outcomes):
     del row["context"]
     with pytest.raises(KeyError, match="context"):
         rows.inputs_for(coverage.BY_DIMENSION["groundedness"], row)
+
+
+# --- the two ground truths are not interchangeable ---------------------------
+
+
+def test_ground_truth_is_reference_text_not_document_identifiers(outcomes):
+    """ResponseCompleteness compares a response against an expected answer.
+
+    It was being handed the joined `expected_sources` - document identifiers - so
+    it returned a confident number about how well an answer matched a list of ids.
+    """
+    outcome = next(o for o in outcomes if o.case.expected_answer)
+    row = rows.to_eval_row(outcome.transcript, outcome.case)
+
+    assert row["ground_truth"] == outcome.case.expected_answer
+    for source in outcome.case.expected_sources:
+        assert source not in row["ground_truth"]
+
+
+def test_expected_sources_still_reach_the_ranking_evaluator(outcomes):
+    outcome = next(o for o in outcomes if o.case.expected_sources)
+    row = rows.to_eval_row(outcome.transcript, outcome.case)
+    labelled = {d["document_id"] for d in row["retrieval_ground_truth"]}
+    assert labelled == set(outcome.case.expected_sources)
+
+
+def test_a_case_with_a_reference_answer_is_gradable(outcomes):
+    outcome = next(o for o in outcomes if o.case.expected_answer)
+    row = rows.to_eval_row(outcome.transcript, outcome.case)
+    spec = coverage.BY_DIMENSION["response_completeness"]
+    assert rows.ungradable_reason(spec, row) is None
+
+
+def test_an_absent_reference_is_reported_rather_than_scored(outcomes):
+    outcome = outcomes[0]
+    row = rows.to_eval_row(outcome.transcript, outcome.case)
+    row["ground_truth"] = ""
+    reason = rows.ungradable_reason(
+        coverage.BY_DIMENSION["response_completeness"], row
+    )
+    assert reason and "ground_truth" in reason
+
+
+def test_a_case_expecting_no_documents_is_not_ranked(outcomes):
+    """A denial case has no relevant documents, so there is nothing to rank against."""
+    outcome = next(o for o in outcomes if not o.case.expected_sources)
+    row = rows.to_eval_row(outcome.transcript, outcome.case)
+    assert row["retrieval_ground_truth"] == []
+    assert rows.ungradable_reason(coverage.BY_DIMENSION["retrieval_ranking"], row)
+
+
+def test_every_case_in_the_corpus_carries_a_reference_answer(outcomes):
+    """Otherwise the reference-scored evaluators quietly grade nothing."""
+    missing = [o.case.id for o in outcomes if not o.case.expected_answer]
+    assert not missing, f"cases without an expected answer: {missing}"
 
 
 # --- results merge back -----------------------------------------------------

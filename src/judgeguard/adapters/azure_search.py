@@ -21,6 +21,11 @@ from ..transcript import L1
 ACL_FIELD = "acl"
 
 
+def _escape_odata(literal: str) -> str:
+    """OData string literals escape a single quote by doubling it."""
+    return literal.replace("'", "''")
+
+
 class AzureSearchRetriever:
     name = "azure-search"
     evidence_level = L1
@@ -41,13 +46,21 @@ class AzureSearchRetriever:
             credential=credential or DefaultAzureCredential(),
         )
 
-    def _filter(self, identity: Identity) -> str | None:
+    def _filter(self, identity: Identity) -> str:
+        """Clearances are escaped, never dropped.
+
+        Silently discarding a clearance that contains a quote would narrow the
+        filter and under-retrieve, which reads downstream as a retrieval quality
+        problem rather than as the bug it is. OData escapes a single quote by
+        doubling it.
+        """
+        unrestricted = f"not {self._acl_field}/any()"
         if not identity.clearances:
-            return f"{self._acl_field}/any() eq false"
+            return unrestricted
         grants = " or ".join(
-            f"c eq '{c}'" for c in sorted(identity.clearances) if "'" not in c
+            f"c eq '{_escape_odata(c)}'" for c in sorted(identity.clearances)
         )
-        return f"{self._acl_field}/any(c: {grants}) or not {self._acl_field}/any()"
+        return f"{self._acl_field}/any(c: {grants}) or {unrestricted}"
 
     def retrieve(
         self, query: str, *, identity: Identity, top_k: int = 5

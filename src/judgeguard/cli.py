@@ -7,6 +7,7 @@ and it derives that code from the deterministic lane alone.
 from __future__ import annotations
 
 import argparse
+import os
 import sys
 from pathlib import Path
 
@@ -25,9 +26,41 @@ DEFAULT_CORPUS = "corpus"
 DEFAULT_OUT = ".judgeguard"
 
 
+def _use_utf8_output() -> None:
+    """Windows consoles and redirected output still default to a legacy code page.
+
+    The report renders verdicts as check, cross and circle glyphs. Encoding those
+    to cp1252 raises UnicodeEncodeError, which killed the run before it could print
+    its verdict. An explicit PYTHONIOENCODING is honoured - only the error handler
+    is relaxed there - so this cannot crash whichever encoding is in force.
+    """
+    explicit = bool(os.environ.get("PYTHONIOENCODING"))
+    for stream in (sys.stdout, sys.stderr):
+        reconfigure = getattr(stream, "reconfigure", None)
+        if reconfigure is None:  # a stream replaced by a harness, e.g. capture
+            continue
+        try:
+            if explicit:
+                reconfigure(errors="replace")
+            else:
+                reconfigure(encoding="utf-8", errors="replace")
+        except (OSError, ValueError):
+            pass
+
+
 def _load(args) -> tuple[Corpus, object]:
     corpus = Corpus.load(args.corpus)
     return corpus, build(args.provider, corpus.documents)
+
+
+def _judge(args):
+    if not args.scorer:
+        return None
+    return build_scorer(
+        args.scorer,
+        allow_self_judge=getattr(args, "allow_self_judge", False),
+        include_experimental=getattr(args, "with_experimental", False),
+    )
 
 
 def _execute(args, provider: str | None = None):
@@ -37,7 +70,7 @@ def _execute(args, provider: str | None = None):
         corpus,
         retriever,
         TemplateCandidate(),
-        judge=build_scorer(args.scorer) if args.scorer else None,
+        judge=_judge(args),
         top_k=args.top_k,
         variant=args.variant,
     )
@@ -67,9 +100,12 @@ def cmd_coverage(args) -> int:
     from .scorers.foundry import coverage as cov
 
     width = max(len(s.evaluator) for s in cov.COVERAGE)
-    print(f"{'evaluator':<{width}}  {'dimension':<20}  requires")
+    print(f"{'evaluator':<{width}}  {'dimension':<24}  {'requires':<17}  stability")
     for spec in cov.COVERAGE:
-        print(f"{spec.evaluator:<{width}}  {spec.dimension:<20}  {spec.requires}")
+        print(
+            f"{spec.evaluator:<{width}}  {spec.dimension:<24}  "
+            f"{spec.requires:<17}  {spec.stability}"
+        )
     computable = len(cov.specs_for(cov.COMPUTABLE))
     model = len(cov.specs_for(cov.MODEL_CONFIG))
     project = len(cov.specs_for(cov.AZURE_AI_PROJECT))
@@ -78,6 +114,16 @@ def cmd_coverage(args) -> int:
         f"{model} need only a model config, "
         f"{project} {'needs' if project == 1 else 'need'} a project connection."
     )
+    unstable = cov.experimental()
+    if unstable:
+        print(
+            f"{len(unstable)} are experimental: the SDK ships them as private, "
+            "underscore-prefixed\n"
+            "  classes, so they are excluded unless asked for. Each carries the "
+            "module to import\n"
+            "  it from, because not all of them are exported from the package "
+            "namespace."
+        )
     print("All of them land in the advisory lane. None of them can gate.")
     return EXIT_OK
 
@@ -90,6 +136,7 @@ def cmd_estimate(args) -> int:
         corpus,
         backend=args.scorer or "foundry",
         project=args.with_project,
+        include_experimental=args.with_experimental,
         repeat=args.repeat,
         price_in=args.price_in,
         price_out=args.price_out,
@@ -238,6 +285,17 @@ def build_parser() -> argparse.ArgumentParser:
             choices=["offline", "foundry"],
             help="advisory judge backend; cannot affect the exit code",
         )
+        sub.add_argument(
+            "--allow-self-judge",
+            action="store_true",
+            help="permit a judge sharing a deployment with the candidate; "
+            "scores are marked SELF and excluded from agreement statistics",
+        )
+        sub.add_argument(
+            "--with-experimental",
+            action="store_true",
+            help="include evaluators the SDK ships as private, experimental classes",
+        )
 
     doctor = subparsers.add_parser("doctor", help="preflight checks")
     doctor.add_argument("--corpus", default=DEFAULT_CORPUS)
@@ -257,6 +315,11 @@ def build_parser() -> argparse.ArgumentParser:
         "--with-project",
         action="store_true",
         help="include evaluators needing a Foundry project connection",
+    )
+    est.add_argument(
+        "--with-experimental",
+        action="store_true",
+        help="include evaluators the SDK ships as private, experimental classes",
     )
     est.set_defaults(func=cmd_estimate)
 
@@ -295,9 +358,20 @@ def build_parser() -> argparse.ArgumentParser:
 
 
 def main(argv: list[str] | None = None) -> int:
+    _use_utf8_output()
     args = build_parser().parse_args(argv)
     try:
         return args.func(args)
+    except UnicodeEncodeError as exc:
+        # Caught before the clause below, which would otherwise swallow it:
+        # UnicodeEncodeError subclasses ValueError, so a console encoding crash
+        # used to be reported as a failed precondition.
+        print(
+            f"cannot encode output for this console ({exc.encoding}). "
+            "Set PYTHONIOENCODING=utf-8 and rerun.",
+            file=sys.stderr,
+        )
+        return EXIT_PRECONDITION_FAILED
     except (FileNotFoundError, RuntimeError, ValueError) as exc:
         print(f"\u2717 {type(exc).__name__}: {exc}", file=sys.stderr)
         return EXIT_PRECONDITION_FAILED

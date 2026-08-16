@@ -3,6 +3,12 @@
 Pure data transformation with no SDK import, so the conversion is testable offline
 and the round-trip fidelity test runs on every commit rather than only when someone
 has credentials.
+
+Two fields are easy to confuse and are not interchangeable. `ground_truth` is
+reference answer text, consumed by reference-scored evaluators such as
+ResponseCompleteness. `retrieval_ground_truth` is a list of relevance-labelled
+document identifiers, consumed by ranking evaluators. Feeding document identifiers
+to a reference-scored evaluator produces a confident number about nothing.
 """
 
 from __future__ import annotations
@@ -14,6 +20,11 @@ from ...transcript import Transcript
 from .coverage import BY_DIMENSION, EvaluatorSpec
 
 CONTEXT_SEPARATOR = "\n\n"
+
+# The corpus labels a source as expected or not, with no intermediate grades, so
+# every expected source carries the same positive label. Graded relevance would
+# need graded labels in the corpus; inventing a spread here would fabricate them.
+EXPECTED_SOURCE_RELEVANCE = 4
 
 
 def to_eval_row(
@@ -46,13 +57,13 @@ def to_eval_row(
             for call in transcript.tool_calls
         ],
         "tool_definitions": tool_definitions or _default_tool_definitions(),
-        "ground_truth": CONTEXT_SEPARATOR.join(case.expected_sources),
+        "ground_truth": case.expected_answer or "",
         "retrieved_documents": [
             {"document_id": p["id"], "relevance_score": p.get("score", 0.0)}
             for p in passages
         ],
         "retrieval_ground_truth": [
-            {"document_id": source, "query_relevance_label": 4}
+            {"document_id": source, "query_relevance_label": EXPECTED_SOURCE_RELEVANCE}
             for source in case.expected_sources
         ],
     }
@@ -63,6 +74,19 @@ def inputs_for(spec: EvaluatorSpec, row: dict[str, Any]) -> dict[str, Any]:
     if missing:
         raise KeyError(f"{spec.evaluator} needs {missing}, absent from the row")
     return {field: row[field] for field in spec.inputs}
+
+
+def ungradable_reason(spec: EvaluatorSpec, row: dict[str, Any]) -> str | None:
+    """Why this evaluator cannot grade this row, or None if it can.
+
+    An evaluator handed an empty reference still returns a number. That number is
+    a property of the empty reference, not of the response, so it is worse than no
+    number at all. Refusing to call is the honest outcome.
+    """
+    for field in spec.requires_nonempty:
+        if not row.get(field):
+            return f"{spec.evaluator} needs a non-empty {field}; this case declares none"
+    return None
 
 
 def from_eval_results(
