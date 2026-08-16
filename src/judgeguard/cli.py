@@ -44,7 +44,10 @@ def _execute(args, provider: str | None = None):
 
 
 def cmd_doctor(args) -> int:
-    corpus = Corpus.load(args.corpus) if Path(args.corpus).exists() else None
+    try:
+        corpus = Corpus.load(args.corpus)
+    except FileNotFoundError:
+        corpus = None
     retrievers = (
         [build("bm25", corpus.documents), build("canned", corpus.documents)]
         if corpus

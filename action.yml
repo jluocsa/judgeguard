@@ -31,7 +31,7 @@ runs:
   steps:
     - uses: astral-sh/setup-uv@v7
     - shell: bash
-      run: uv tool install judgeguard --python ${{ inputs.python-version }}
+      run: uv tool install git+https://github.com/jluocsa/judgeguard --python ${{ inputs.python-version }}
     - id: gate
       shell: bash
       run: |

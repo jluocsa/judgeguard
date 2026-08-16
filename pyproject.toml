@@ -40,6 +40,10 @@ build-backend = "hatchling.build"
 [tool.hatch.build.targets.wheel]
 packages = ["src/judgeguard"]
 
+# Ship the demo corpus so `uvx judgeguard gate` works from any directory.
+[tool.hatch.build.targets.wheel.force-include]
+"corpus" = "judgeguard/bundled_corpus"
+
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 addopts = "-q"

@@ -16,6 +16,21 @@ from .contract import Identity
 
 VARIANTS = ("keyword", "natural", "prefixed")
 
+BUNDLED = Path(__file__).parent / "bundled_corpus"
+
+
+def resolve(path: str | Path) -> Path:
+    """Fall back to the packaged demo corpus so a zero-install run works anywhere."""
+    path = Path(path)
+    if path.exists():
+        return path
+    if BUNDLED.exists():
+        return BUNDLED
+    raise FileNotFoundError(
+        f"no corpus at {path}, and no bundled corpus in this install. "
+        "Pass --corpus, or clone the repository for the demo corpus."
+    )
+
 
 @dataclass(frozen=True)
 class Document:
@@ -45,7 +60,7 @@ class Corpus:
 
     @classmethod
     def load(cls, root: str | Path) -> "Corpus":
-        root = Path(root)
+        root = resolve(root)
         docs_path = root / "documents.jsonl"
         cases_path = root / "cases.jsonl"
         for path in (docs_path, cases_path):
