@@ -110,6 +110,23 @@ Writing your own is one class with a `retrieve` method. See
 production reports on inputs the system will never receive, so the phrasing is a first
 class field and `--variant` lets you measure the gap instead of arguing about it.
 
+## Scorer backends
+
+The judge lane is pluggable. Which backend you pick changes the score column and
+changes nothing about what gates.
+
+```bash
+judgeguard coverage                  # which evaluator covers what, and what it needs
+judgeguard gate --scorer foundry     # Azure AI Foundry evaluators
+```
+
+Seven of the nine mapped Foundry evaluators need only a bare model config — not a
+project connection. That is the difference between adopting a managed eval service
+being a config change and being a procurement conversation, and it is invisible from
+any capability list. See [docs/evaluator-coverage.md](docs/evaluator-coverage.md).
+
+The independence guard applies to every backend.
+
 ## Commands
 
 | Command | Purpose |
@@ -118,6 +135,7 @@ class field and `--variant` lets you measure the gap instead of arguing about it
 | `judgeguard gate` | CI entrypoint — deterministic lane sets the exit code |
 | `judgeguard run` | one provider, full transcripts |
 | `judgeguard bakeoff --a X --b Y` | two providers, one corpus, one comparison |
+| `judgeguard coverage` | the evaluator map and what each one requires |
 
 Exit codes: `0` pass, `1` a deterministic check failed, `2` a precondition failed.
 
@@ -125,7 +143,10 @@ Exit codes: `0` pass, `1` a deterministic check failed, `2` a precondition faile
 
 Alpha. The core is real and tested; these are specified and not yet built:
 `estimate`, `agree` (judge/human agreement), `label`, `corpus build`, the HTML report,
-OpenTelemetry emission, and the OpenAI and Foundry scorer backends.
+OpenTelemetry emission, and the OpenAI scorer backend.
+
+The Foundry coverage map, row conversion and results merge are implemented and tested
+offline. The live service call has not been run against a real endpoint.
 
 The bundled corpus is **synthetic** and CC0. A public-domain corpus is planned; see
 [corpus/README.md](corpus/README.md).

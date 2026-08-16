@@ -16,9 +16,9 @@ from .adapters import build
 from .candidates import TemplateCandidate
 from .corpus import Corpus
 from .gate import EXIT_OK, EXIT_PRECONDITION_FAILED, exit_code
-from .lanes.judge import OfflineStubJudge
 from .report import markdown, summary
 from .runner import run
+from .scorers import build as build_scorer
 from .transcript import write_jsonl
 
 DEFAULT_CORPUS = "corpus"
@@ -37,7 +37,7 @@ def _execute(args, provider: str | None = None):
         corpus,
         retriever,
         TemplateCandidate(),
-        judge=OfflineStubJudge() if args.judge else None,
+        judge=build_scorer(args.scorer) if args.scorer else None,
         top_k=args.top_k,
         variant=args.variant,
     )
@@ -58,6 +58,25 @@ def cmd_doctor(args) -> int:
         if finding.status == doctor_mod.FAILED:
             worst = EXIT_PRECONDITION_FAILED
     return worst
+
+
+def cmd_coverage(args) -> int:
+    from .scorers.foundry import coverage as cov
+
+    width = max(len(s.evaluator) for s in cov.COVERAGE)
+    print(f"{'evaluator':<{width}}  {'dimension':<20}  requires")
+    for spec in cov.COVERAGE:
+        print(f"{spec.evaluator:<{width}}  {spec.dimension:<20}  {spec.requires}")
+    computable = len(cov.specs_for(cov.COMPUTABLE))
+    model = len(cov.specs_for(cov.MODEL_CONFIG))
+    project = len(cov.specs_for(cov.AZURE_AI_PROJECT))
+    print(
+        f"\n{computable} computable, "
+        f"{model} need only a model config, "
+        f"{project} {'needs' if project == 1 else 'need'} a project connection."
+    )
+    print("All of them land in the advisory lane. None of them can gate.")
+    return EXIT_OK
 
 
 def cmd_run(args) -> int:
@@ -114,11 +133,19 @@ def build_parser() -> argparse.ArgumentParser:
         sub.add_argument("--out", default=DEFAULT_OUT)
         sub.add_argument("--top-k", type=int, default=5)
         sub.add_argument("--variant", default=None, choices=["keyword", "natural", "prefixed"])
-        sub.add_argument("--judge", action="store_true", help="run the advisory judge lane")
+        sub.add_argument(
+            "--scorer",
+            default=None,
+            choices=["offline", "foundry"],
+            help="advisory judge backend; cannot affect the exit code",
+        )
 
     doctor = subparsers.add_parser("doctor", help="preflight checks")
     doctor.add_argument("--corpus", default=DEFAULT_CORPUS)
     doctor.set_defaults(func=cmd_doctor)
+
+    cov = subparsers.add_parser("coverage", help="which evaluator covers which dimension")
+    cov.set_defaults(func=cmd_coverage)
 
     runner = subparsers.add_parser("run", help="run one provider, write transcripts")
     common(runner)
