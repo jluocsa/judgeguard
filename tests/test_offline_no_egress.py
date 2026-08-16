@@ -34,9 +34,17 @@ def test_offline_run_produces_a_verdict(no_egress):
 
 
 def test_package_imports_no_sdk():
+    """Checked in a fresh interpreter: another test importing an SDK must not mask this."""
+    import subprocess
     import sys
 
-    import judgeguard  # noqa: F401
-
-    forbidden = {"openai", "azure.identity", "azure.search.documents"}
-    assert not forbidden & set(sys.modules)
+    probe = (
+        "import sys, judgeguard;"
+        "bad = {'openai', 'azure.identity', 'azure.search.documents',"
+        " 'azure.ai.evaluation'} & set(sys.modules);"
+        "print(sorted(bad))"
+    )
+    result = subprocess.run(
+        [sys.executable, "-c", probe], capture_output=True, text=True, check=True
+    )
+    assert result.stdout.strip() == "[]", f"importing judgeguard pulled {result.stdout}"

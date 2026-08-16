@@ -8,12 +8,15 @@ from __future__ import annotations
 
 import pytest
 
-from judgeguard.estimate import PROMPT_OVERHEAD_TOKENS, measure_overhead
-
-pytest.importorskip("azure.ai.evaluation", reason="needs the foundry extra")
+from judgeguard.estimate import PROMPT_OVERHEAD_TOKENS
 
 
 def test_constants_match_the_installed_templates():
+    # Imported inside the test so collection does not pull the SDK into sys.modules,
+    # which would mask the no-SDK-import invariant elsewhere in the suite.
+    pytest.importorskip("azure.ai.evaluation", reason="needs the foundry extra")
+    from judgeguard.estimate import measure_overhead
+
     measured = measure_overhead()
     assert measured, "no prompty templates found in the installed SDK"
     stale = {

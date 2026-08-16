@@ -149,8 +149,15 @@ def test_foundry_scores_still_cannot_gate(outcomes):
 
 
 def test_importing_the_bridge_does_not_import_the_sdk():
+    """Fresh interpreter: the coverage map and row conversion stay SDK-free."""
+    import subprocess
     import sys
 
-    from judgeguard.scorers import foundry  # noqa: F401
-
-    assert "azure.ai.evaluation" not in sys.modules
+    probe = (
+        "import sys; from judgeguard.scorers import foundry;"
+        "print('azure.ai.evaluation' in sys.modules)"
+    )
+    result = subprocess.run(
+        [sys.executable, "-c", probe], capture_output=True, text=True, check=True
+    )
+    assert result.stdout.strip() == "False"
