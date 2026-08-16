@@ -77,6 +77,27 @@ def _execute(args, provider: str | None = None):
     )
 
 
+def _result(args, provider: str | None = None):
+    """Either drive a retriever, or grade transcripts something else produced.
+
+    Everything downstream reads a RunResult, so a run judgeguard did not perform is
+    graded, reported and gated by exactly the same code as one it did.
+    """
+    source = getattr(args, "transcripts", None)
+    if not source:
+        return _execute(args, provider)
+
+    from .ingest import grade, load
+
+    corpus = Corpus.load(args.corpus)
+    return grade(
+        corpus,
+        load(source),
+        judge=_judge(args),
+        allow_partial=getattr(args, "allow_partial", False),
+    )
+
+
 def cmd_doctor(args) -> int:
     try:
         corpus = Corpus.load(args.corpus)
@@ -257,6 +278,34 @@ def cmd_gate(args) -> int:
     return code
 
 
+def cmd_grade(args) -> int:
+    """Grade transcripts an external agent produced. The CI entrypoint for an agent.
+
+    `gate` drives retrieval itself, which cannot express an agent that owns its tool
+    loop. This is the same gate for a run that already happened.
+    """
+    result = _result(args)
+    print(summary(result))
+
+    out = Path(args.out)
+    (out / "report.md").parent.mkdir(parents=True, exist_ok=True)
+    (out / "report.md").write_text(markdown(result), encoding="utf-8")
+
+    baseline_path = Path(args.baseline)
+    if baseline_path.exists():
+        for delta in baseline_mod.compare(baseline_mod.load(baseline_path), result):
+            flag = "REGRESSED" if delta.regressed else "changed"
+            print(f"    {flag} {delta.case_id} {delta.kind}: {delta.before} -> {delta.after}")
+    if args.update_baseline:
+        baseline_mod.save(baseline_path, result)
+        print(f"    baseline written to {baseline_path}")
+
+    code = exit_code(result.all_checks)
+    print(f"\nreport:      {out / 'report.md'}")
+    print(f"\nexit {code}")
+    return code
+
+
 def cmd_emit_dataset(args) -> int:
     """Write one Foundry-ready row per case, and the criteria that consume them.
 
@@ -269,7 +318,7 @@ def cmd_emit_dataset(args) -> int:
     from .scorers.foundry import coverage as cov
     from .scorers.foundry.rows import to_eval_row, ungradable_reason
 
-    result = _execute(args)
+    result = _result(args)
     out = Path(args.out)
     out.mkdir(parents=True, exist_ok=True)
     dataset = out / args.dataset
@@ -401,6 +450,12 @@ def build_parser() -> argparse.ArgumentParser:
     )
     common(emit)
     emit.add_argument("--provider", default="bm25")
+    emit.add_argument(
+        "--transcripts",
+        default=None,
+        help="grade these transcripts instead of driving a retriever",
+    )
+    emit.add_argument("--allow-partial", action="store_true")
     emit.add_argument("--dataset", default="dataset.jsonl")
     emit.add_argument(
         "--criteria",
@@ -414,6 +469,25 @@ def build_parser() -> argparse.ArgumentParser:
         "names on the service, so they are included by default here",
     )
     emit.set_defaults(func=cmd_emit_dataset)
+
+    grade = subparsers.add_parser(
+        "grade", help="CI entrypoint for an agent: grade transcripts it produced"
+    )
+    common(grade)
+    grade.add_argument(
+        "--transcripts",
+        required=True,
+        help="JSONL of transcripts, one per case, in judgeguard's transcript shape",
+    )
+    grade.add_argument(
+        "--allow-partial",
+        action="store_true",
+        help="grade a subset; without this a case with no transcript is an error, "
+        "because a partial run reported as a full one is not evidence about the suite",
+    )
+    grade.add_argument("--baseline", default=f"{DEFAULT_OUT}/baseline.json")
+    grade.add_argument("--update-baseline", action="store_true")
+    grade.set_defaults(func=cmd_grade, provider="ingested")
 
     label = subparsers.add_parser("label", help="emit a sheet for human labelling")
     common(label)

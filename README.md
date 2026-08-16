@@ -325,6 +325,7 @@ and get copied into forks. A stale number baked into a tool is worse than no num
 |---|---|
 | `judgeguard doctor` | preflight: judge independence, corpus, adapter conformance |
 | `judgeguard gate` | CI entrypoint — the deterministic lane sets the exit code |
+| `judgeguard grade` | the same gate for an agent that ran itself, from transcripts |
 | `judgeguard run` | one provider, full transcripts |
 | `judgeguard bakeoff --a X --b Y` | two providers, one corpus, one comparison |
 | `judgeguard coverage` | the evaluator map and what each one requires |
@@ -419,7 +420,7 @@ receive, so `--variant` lets you measure that gap instead of arguing about it.
 | | |
 |---|---|
 | **Working and tested** | contract + conformance suite, 8 deterministic checks, evidence levels, two lanes, transcripts, baselines, five retrieval adapters, `estimate`, `label`, `agree`, Foundry coverage map and row conversion |
-| **Not yet built** | `corpus build`, HTML report, OpenTelemetry emission, OpenAI scorer backend, a routing layer and a multi-turn runner |
+| **Not yet built** | `corpus build`, HTML report, OpenTelemetry emission, OpenAI scorer backend |
 | **Not yet verified** | the live `FoundryScorer` service call. The coverage map and row conversion are tested offline against the installed SDK, but no evaluator has returned a real score yet, and the SDK warns that judgeguard's string-shaped `query` and `response` degrade agent evaluator accuracy — the message-shaped payload needs building first. The two MCP adapters have not run against a live server; neither backend is deployed and neither has published a response shape ([docs/option-conformance.md](docs/option-conformance.md)) |
 | **Placeholder** | the bundled corpus is **synthetic** and CC0; a public-domain corpus is planned ([corpus/README.md](corpus/README.md)) |
 
@@ -432,6 +433,8 @@ receive, so `--variant` lets you measure that gap instead of arguing about it.
 - [Option conformance](docs/option-conformance.md) — comparing two retrieval backends honestly
 - [Writing adapters](docs/writing-adapters.md) — one class, one method
 - [Q&A case pack](corpus/qa-pod/README.md) — a real scenario matrix made executable
+- [Grading an agent](examples/agent-transcripts/README.md) — the transcript contract, and
+  what L2 buys that L1 cannot reach
 - [Foundry eval, end to end](examples/qa-foundry-eval/README.md) — the full pipeline, the
   thirteen evaluators, and the payload trap that silently deflates agent scores
 - [Grading someone else's run](examples/csa-workbench/README.md) — ingesting a finished
