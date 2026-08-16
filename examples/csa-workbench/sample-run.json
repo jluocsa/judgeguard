@@ -1,0 +1,794 @@
+[
+  {
+    "item_id": "ACME-1-create-engagement",
+    "turn": 0,
+    "harness_pass": true,
+    "query": "Acme wants a security and data-governance review of the chatbot before the pilot goes wide. Set up an engagement for it under Acme Corp \u2014 call it 'Acme Data Gov",
+    "results": [
+      {
+        "name": "intent_resolution",
+        "score": 5.0,
+        "passed": true,
+        "status": "completed",
+        "threshold": 3,
+        "reason": "User asked to set up an engagement under Acme Corp titled \u201cAcme Data Governance Review\u201d for a chatbot security and data-governance review. The agent confirms the engagement was created with the correc"
+      },
+      {
+        "name": "task_adherence",
+        "score": 1.0,
+        "passed": true,
+        "status": "completed",
+        "threshold": 0,
+        "reason": "The user asked to set up an engagement under Acme Corp named \u201cAcme Data Governance Review\u201d for a security and data-governance review. The assistant executed a create_engagement tool call with the corr"
+      },
+      {
+        "name": "task_completion",
+        "score": 1.0,
+        "passed": true,
+        "status": "completed",
+        "threshold": 1,
+        "reason": "The user asked to set up an engagement under Acme Corp named \u201cAcme Data Governance Review\u201d for a security and data-governance review. The agent created that engagement successfully and returned the na"
+      },
+      {
+        "name": "tool_call_accuracy",
+        "score": 5.0,
+        "passed": true,
+        "status": "completed",
+        "threshold": 3,
+        "reason": "Let's think step by step: 1) The user's last query asks to set up an engagement under customer 'Acme Corp' with the name 'Acme Data Governance Review' for a security and data-governance review of the "
+      },
+      {
+        "name": "tool_input_accuracy",
+        "score": 1.0,
+        "passed": true,
+        "status": "completed",
+        "threshold": 1,
+        "reason": "Evaluated tool call: create_engagement(name=\"Acme Data Governance Review\", customer=\"Acme Corp\", description=\"Security and data-governance review of the chatbot before the pilot goes wide.\") against t"
+      },
+      {
+        "name": "tool_selection",
+        "score": 1.0,
+        "passed": true,
+        "status": "completed",
+        "threshold": 1,
+        "reason": "1) User query: create an engagement under Acme Corp named 'Acme Data Governance Review'. This is a create operation.\n2) Conversation history: no prior tool calls/data provided that would already have "
+      },
+      {
+        "name": "tool_output_utilization",
+        "score": 1.0,
+        "passed": true,
+        "status": "completed",
+        "threshold": 1,
+        "reason": "The response\u2019s tool call and the subsequent textual summary accurately reflect the tool result, including engagement name, customer, id, status, role, and description, with no fabricated or mismatched"
+      },
+      {
+        "name": "tool_call_success",
+        "score": 1.0,
+        "passed": true,
+        "status": "completed",
+        "threshold": 1,
+        "reason": "The create_engagement tool returned a well-formed JSON response with status \"committed\" and a populated resource object (including an id). There are no error fields, exceptions, null/empty mandatory o"
+      }
+    ]
+  },
+  {
+    "item_id": "ACME-2-update-status",
+    "turn": 1,
+    "harness_pass": true,
+    "query": "Acme's data-privacy review just slipped to August 12. Put the chatbot engagement at Yellow, reason 'Data-privacy review slipped to August 12'.",
+    "results": [
+      {
+        "name": "intent_resolution",
+        "score": 5.0,
+        "passed": true,
+        "status": "completed",
+        "threshold": 3,
+        "reason": "User asked to set the chatbot engagement status to Yellow and record the specific reason about the data-privacy review slipping to August 12. The agent confirmed the status change to Yellow and accura"
+      },
+      {
+        "name": "task_adherence",
+        "score": 1.0,
+        "passed": true,
+        "status": "completed",
+        "threshold": 0,
+        "reason": "The user asked to set the Acme chatbot engagement to Yellow with the specific reason \u201cData-privacy review slipped to August 12.\u201d The assistant first listed engagements to find the correct record, then"
+      },
+      {
+        "name": "task_completion",
+        "score": 1.0,
+        "passed": true,
+        "status": "completed",
+        "threshold": 1,
+        "reason": "The user asked to set the Acme chatbot engagement to Yellow with a specific reason noting the data-privacy review slipped to August 12. The agent updated the correct engagement status to yellow and re"
+      },
+      {
+        "name": "tool_call_accuracy",
+        "score": 5.0,
+        "passed": true,
+        "status": "completed",
+        "threshold": 3,
+        "reason": "Let's think step by step: 1) User\u2019s last query/instruction: update Acme\u2019s engagement because the data-privacy review slipped to August 12, and set the chatbot engagement status to Yellow with the prov"
+      },
+      {
+        "name": "tool_input_accuracy",
+        "score": 1.0,
+        "passed": true,
+        "status": "completed",
+        "threshold": 1,
+        "reason": "Evaluated both tool calls against the tool definitions and the user request.\n\n1) list_engagements()\n- Parameters passed: none.\n- Tool definition expects an object with no defined properties; passing n"
+      },
+      {
+        "name": "tool_selection",
+        "score": 1.0,
+        "passed": true,
+        "status": "completed",
+        "threshold": 1,
+        "reason": "1) User\u2019s query: Update the Acme engagement to Yellow status with the provided reason about the data-privacy review slipping to Aug 12.\n2) Conversation history: No prior tool calls/results are provide"
+      },
+      {
+        "name": "tool_output_utilization",
+        "score": 1.0,
+        "passed": true,
+        "status": "completed",
+        "threshold": 1,
+        "reason": "The response\u2019s status update and recorded reason match the tool output from set_engagement_status: Acme Internal AI Chatbot was set to yellow with the note \u201cData-privacy review slipped to August 12.\u201d "
+      },
+      {
+        "name": "tool_call_success",
+        "score": 1.0,
+        "passed": true,
+        "status": "completed",
+        "threshold": 1,
+        "reason": "Both tool results returned structured JSON with explicit success indicators (\"status\": \"succeeded\" and \"status\": \"committed\") and no error/exception fields, timeouts, or missing/empty responses that w"
+      }
+    ]
+  },
+  {
+    "item_id": "ACME-3-meeting-prep",
+    "turn": 2,
+    "harness_pass": true,
+    "query": "Prep me for my Acme Internal AI Chatbot check-in.",
+    "results": [
+      {
+        "name": "intent_resolution",
+        "score": 4.0,
+        "passed": true,
+        "status": "completed",
+        "threshold": 3,
+        "reason": "User asked to be prepped for an internal AI chatbot check-in. The agent provided a structured brief with status, milestones, open work, risks, and a meeting callout, which is directly useful. Minor ga"
+      },
+      {
+        "name": "task_adherence",
+        "score": 1.0,
+        "passed": true,
+        "status": "completed",
+        "threshold": 0,
+        "reason": "The user asked to be prepped for an Acme Internal AI Chatbot check-in. The assistant used tools to locate the correct engagement and retrieved relevant details (status, target date, milestones, open t"
+      },
+      {
+        "name": "task_completion",
+        "score": 1.0,
+        "passed": true,
+        "status": "completed",
+        "threshold": 1,
+        "reason": "The user asked to be prepped for an Acme Internal AI Chatbot check-in. The agent delivered a concise, meeting-ready brief covering status, next milestone, open tasks with due dates and priorities, and"
+      },
+      {
+        "name": "tool_call_accuracy",
+        "score": 5.0,
+        "passed": true,
+        "status": "completed",
+        "threshold": 3,
+        "reason": "Let's think step by step: The user's last query is: \"Prep me for my Acme Internal AI Chatbot check-in.\" To prepare, the agent should retrieve the engagement\u2019s key details (status, target date, tasks, "
+      },
+      {
+        "name": "tool_input_accuracy",
+        "score": 1.0,
+        "passed": true,
+        "status": "completed",
+        "threshold": 1,
+        "reason": "Evaluated 2 tool calls.\n\n1) list_engagements()\n- Parameters passed: none (empty object implied).\n- Tool definition expects an object with no defined properties and no required fields.\n- Groundedness/t"
+      },
+      {
+        "name": "tool_selection",
+        "score": 1.0,
+        "passed": true,
+        "status": "completed",
+        "threshold": 1,
+        "reason": "1) User query: The user asked, \u201cPrep me for my Acme Internal AI Chatbot check-in.\u201d This implies generating a briefing/check-in prep, which is most effective if grounded in the user\u2019s current engagemen"
+      },
+      {
+        "name": "tool_output_utilization",
+        "score": 1.0,
+        "passed": true,
+        "status": "completed",
+        "threshold": 1,
+        "reason": "All factual statements in the response (customer, status, target date, milestone, tasks, and risk) accurately reflect the prior tool outputs from list_engagements and get_engagement, with no fabricate"
+      },
+      {
+        "name": "tool_call_success",
+        "score": 1.0,
+        "passed": true,
+        "status": "completed",
+        "threshold": 1,
+        "reason": "Both tool results return structured JSON with status explicitly set to \"succeeded\" and include expected resource payloads (engagement list and full engagement detail). There are no error fields, excep"
+      }
+    ]
+  },
+  {
+    "item_id": "ACME-6-portfolio-triage",
+    "turn": 3,
+    "harness_pass": true,
+    "query": "Which of my engagements need attention right now? Anything at risk I should flag before my check-ins?",
+    "results": [
+      {
+        "name": "intent_resolution",
+        "score": 5.0,
+        "passed": true,
+        "status": "completed",
+        "threshold": 3,
+        "reason": "User asked which engagements need attention and what\u2019s at risk before check-ins. The agent directly identified the only yellow engagement, explained the external blocker and risk, and noted a green en"
+      },
+      {
+        "name": "task_adherence",
+        "score": 1.0,
+        "passed": true,
+        "status": "completed",
+        "threshold": 0,
+        "reason": "The user asked which engagements need attention now and what\u2019s at risk before check-ins. The assistant appropriately used tools to list and then fetch details for each engagement, then summarized atte"
+      },
+      {
+        "name": "task_completion",
+        "score": 1.0,
+        "passed": true,
+        "status": "completed",
+        "threshold": 1,
+        "reason": "The user asked which engagements need attention and what risks to flag before check-ins. The agent identified the yellow engagement, explained the blocker and risk, and also highlighted a green engage"
+      },
+      {
+        "name": "tool_call_accuracy",
+        "score": 5.0,
+        "passed": true,
+        "status": "completed",
+        "threshold": 3,
+        "reason": "Let's think step by step: The user's last query asks which engagements need attention right now and what is at risk before check-ins. Relevant tools are list_engagements to discover the user\u2019s engagem"
+      },
+      {
+        "name": "tool_input_accuracy",
+        "score": 1.0,
+        "passed": true,
+        "status": "completed",
+        "threshold": 1,
+        "reason": "Evaluated 3 tool calls: list_engagements() and two get_engagement(...) calls.\n\n1) list_engagements\n- Parameters passed: none (empty object implied).\n- Tool definition parameters: object with no define"
+      },
+      {
+        "name": "tool_selection",
+        "score": 1.0,
+        "passed": true,
+        "status": "completed",
+        "threshold": 1,
+        "reason": "1) User query: identify which engagements need attention now and anything at risk before check-ins. This requires seeing the user\u2019s engagements and their risk/task/milestone status.\n2) Conversation hi"
+      },
+      {
+        "name": "tool_output_utilization",
+        "score": 1.0,
+        "passed": true,
+        "status": "completed",
+        "threshold": 1,
+        "reason": "All engagement statuses, notes, target dates, tasks, milestones, and risks referenced in the response match the fields returned by list_engagements and get_engagement for the two engagements. No fabri"
+      },
+      {
+        "name": "tool_call_success",
+        "score": 1.0,
+        "passed": true,
+        "status": "completed",
+        "threshold": 1,
+        "reason": "All three tool results returned structured JSON with status=\"succeeded\" and success codes/messages. None contain error indicators, exceptions, null/empty unusable payloads, or timeouts. The returned r"
+      }
+    ]
+  },
+  {
+    "item_id": "ACME-7-meeting-wrapup",
+    "turn": 4,
+    "harness_pass": true,
+    "query": "Just wrapped the Acme check-in. The privacy review slipped to August 12, so drop the chatbot engagement to Yellow with reason 'Data-privacy review slipped to Au",
+    "results": [
+      {
+        "name": "intent_resolution",
+        "score": 5.0,
+        "passed": true,
+        "status": "completed",
+        "threshold": 3,
+        "reason": "User requested two actions: change the Acme chatbot engagement status to Yellow with a specific reason, and create a high-priority task to confirm the revised privacy-review date with Dana Okafor. The"
+      },
+      {
+        "name": "task_adherence",
+        "score": 1.0,
+        "passed": true,
+        "status": "completed",
+        "threshold": 0,
+        "reason": "The user asked to update the Acme chatbot engagement to Yellow with the specific reason and to add a High priority task. The assistant listed engagements, correctly identified and updated `eng-acme-ai"
+      },
+      {
+        "name": "task_completion",
+        "score": 1.0,
+        "passed": true,
+        "status": "completed",
+        "threshold": 1,
+        "reason": "The user requested two concrete actions: change the Acme chatbot engagement status to Yellow with a specific reason, and create a High priority task. The agent executed both updates and confirmed the "
+      },
+      {
+        "name": "tool_call_accuracy",
+        "score": 5.0,
+        "passed": true,
+        "status": "completed",
+        "threshold": 3,
+        "reason": "Let's think step by step: The user's last query asks to (1) drop the chatbot engagement to Yellow with a specific reason ('Data-privacy review slipped to August 12') and (2) add a High priority privat"
+      },
+      {
+        "name": "tool_input_accuracy",
+        "score": 1.0,
+        "passed": true,
+        "status": "completed",
+        "threshold": 1,
+        "reason": "Evaluated 3 tool calls against the provided tool definitions and the user\u2019s request.\n\n1) list_engagements()\n- Parameters: none (empty object implied).\n- Tool definition: accepts an object with no defi"
+      },
+      {
+        "name": "tool_selection",
+        "score": 1.0,
+        "passed": true,
+        "status": "completed",
+        "threshold": 1,
+        "reason": "User request: update the Acme engagement\u2019s status to Yellow with a specific reason, and create a High priority private task. To do this, the agent needs the stable engagement_id (via list_engagements,"
+      },
+      {
+        "name": "tool_output_utilization",
+        "score": 1.0,
+        "passed": true,
+        "status": "completed",
+        "threshold": 1,
+        "reason": "All tool-derived details stated in the response (engagement id, status change to yellow with the given note, and the created task title/priority/status) match the corresponding tool outputs, with no i"
+      },
+      {
+        "name": "tool_call_success",
+        "score": 1.0,
+        "passed": true,
+        "status": "completed",
+        "threshold": 1,
+        "reason": "All three tool calls returned structured JSON responses with success-like statuses (\"succeeded\" or \"committed\") and no error/exception, timeout, or malformed/empty outputs. Each result includes expect"
+      }
+    ]
+  },
+  {
+    "item_id": "ACME-8-vague-create",
+    "turn": 5,
+    "harness_pass": true,
+    "query": "Create a new engagement.",
+    "results": [
+      {
+        "name": "intent_resolution",
+        "score": 4.0,
+        "passed": true,
+        "status": "completed",
+        "threshold": 3,
+        "reason": "User asked to create a new engagement. The agent did not actually create it, but appropriately requested the key missing fields (name, description, customer, target date) needed to proceed. This is a "
+      },
+      {
+        "name": "task_adherence",
+        "score": 0.0,
+        "passed": false,
+        "status": "completed",
+        "threshold": 0,
+        "reason": "The user asked to \u201cCreate a new engagement,\u201d but the assistant did not create anything and made no tool calls; it only asked for additional fields (name, description, customer, target date). While cla"
+      },
+      {
+        "name": "task_completion",
+        "score": 0.0,
+        "passed": false,
+        "status": "completed",
+        "threshold": 1,
+        "reason": "The agent did not create the requested engagement. It only asked the user for additional fields (name, description, customer, target date), so no usable engagement or completed deliverable was produce"
+      },
+      {
+        "name": "tool_call_accuracy",
+        "score": null,
+        "passed": null,
+        "status": "skipped",
+        "threshold": 3,
+        "reason": "Not applicable: No tool calls found in response or provided tool_calls."
+      },
+      {
+        "name": "tool_input_accuracy",
+        "score": null,
+        "passed": null,
+        "status": "skipped",
+        "threshold": 1,
+        "reason": "Not applicable: No tool calls found in response or provided tool_calls."
+      },
+      {
+        "name": "tool_selection",
+        "score": null,
+        "passed": null,
+        "status": "skipped",
+        "threshold": 1,
+        "reason": "Not applicable: No tool calls found in response or provided tool_calls."
+      },
+      {
+        "name": "tool_output_utilization",
+        "score": null,
+        "passed": null,
+        "status": "skipped",
+        "threshold": 1,
+        "reason": "Not applicable: Evaluation was skipped because the provided conversation history contains no tool calls or tool results to compare against; the agent response only asks the user for input and does not"
+      },
+      {
+        "name": "tool_call_success",
+        "score": null,
+        "passed": null,
+        "status": "skipped",
+        "threshold": 1,
+        "reason": "Not applicable: No actual tool invocation occurred. The provided TOOL_CALLS entry is only an assistant text message asking for input and contains no tool name, parameters, or tool result to assess. Wi"
+      }
+    ]
+  },
+  {
+    "item_id": "ACME-4-boundary",
+    "turn": 6,
+    "harness_pass": true,
+    "query": "Sam says the Globex support copilot pilot is failing \u2014 flag that engagement Red for me.",
+    "results": [
+      {
+        "name": "intent_resolution",
+        "score": 3.0,
+        "passed": true,
+        "status": "completed",
+        "threshold": 3,
+        "reason": "User wanted the Globex support copilot pilot engagement flagged Red. The agent did not complete the action, but it gave a plausible blocker (no matching engagement found) and requested necessary speci"
+      },
+      {
+        "name": "task_adherence",
+        "score": 1.0,
+        "passed": true,
+        "status": "completed",
+        "threshold": 0,
+        "reason": "The user asked to flag the \u201cGlobex support copilot pilot\u201d engagement Red. The assistant appropriately attempted to locate the engagement via a list call, but the tool result showed only two engagement"
+      },
+      {
+        "name": "task_completion",
+        "score": 0.0,
+        "passed": false,
+        "status": "completed",
+        "threshold": 1,
+        "reason": "User asked to flag the Globex support copilot pilot engagement as Red. The agent did not perform the status update; instead it reported no matching engagement visible and requested an engagement ID an"
+      },
+      {
+        "name": "tool_call_accuracy",
+        "score": 2.0,
+        "passed": false,
+        "status": "completed",
+        "threshold": 3,
+        "reason": "Let's think step by step: The user's last query is to \u201cflag the Globex support copilot pilot\u201d engagement as Red. From the tool definitions, the agent would need to (a) identify the correct engagement "
+      },
+      {
+        "name": "tool_input_accuracy",
+        "score": 1.0,
+        "passed": true,
+        "status": "completed",
+        "threshold": 1,
+        "reason": "Tool call evaluated: list_engagements().\n\n1) Parameter Groundedness: The call included no parameters. The tool definition allows an empty object, so there are no parameter values to fabricate.\n2) Type"
+      },
+      {
+        "name": "tool_selection",
+        "score": 0.0,
+        "passed": false,
+        "status": "completed",
+        "threshold": 1,
+        "reason": "User asked to flag the Globex support copilot pilot engagement as Red. To do this, the agent must identify the correct engagement_id (via list_engagements and/or get_engagement) and then call set_enga"
+      },
+      {
+        "name": "tool_output_utilization",
+        "score": 0.0,
+        "passed": false,
+        "status": "completed",
+        "threshold": 1,
+        "reason": "The response includes claims about requirements for setting an engagement to red that are not supported by the provided tool output. While the absence of a matching Globex engagement is consistent wit"
+      },
+      {
+        "name": "tool_call_success",
+        "score": 1.0,
+        "passed": true,
+        "status": "completed",
+        "threshold": 1,
+        "reason": "The only tool call, list_engagements, returned a structured JSON response with status \"succeeded\" and a normal payload listing accessible engagements. There are no error fields, exceptions, null/empty"
+      }
+    ]
+  },
+  {
+    "item_id": "ACME-5-full-conversation/prepare",
+    "turn": 7,
+    "harness_pass": true,
+    "query": "Prep me for my Acme Internal AI Chatbot check-in.",
+    "results": [
+      {
+        "name": "intent_resolution",
+        "score": 4.0,
+        "passed": true,
+        "status": "completed",
+        "threshold": 3,
+        "reason": "User wanted preparation for an internal AI chatbot check-in. The agent provided a clear, structured brief covering status, milestone, open work, risks, and a noted information gap, plus offered a talk"
+      },
+      {
+        "name": "task_adherence",
+        "score": 1.0,
+        "passed": true,
+        "status": "completed",
+        "threshold": 0,
+        "reason": "The user asked to be prepped for an internal check-in on the Acme Internal AI Chatbot. The assistant used tools to list engagements and fetch the specific engagement details, then produced a concise c"
+      },
+      {
+        "name": "task_completion",
+        "score": 1.0,
+        "passed": true,
+        "status": "completed",
+        "threshold": 1,
+        "reason": "The user wanted preparation for an internal check-in. The agent provided a clear check-in brief with key engagement details: status, target date, next milestone, open tasks, risk, and a noted material"
+      },
+      {
+        "name": "tool_call_accuracy",
+        "score": 5.0,
+        "passed": true,
+        "status": "completed",
+        "threshold": 3,
+        "reason": "Let's think step by step: 1) The user's last query is: \"Prep me for my Acme Internal AI Chatbot check-in.\" To prep, the agent should gather the latest engagement details (status, target date, tasks, m"
+      },
+      {
+        "name": "tool_input_accuracy",
+        "score": 1.0,
+        "passed": true,
+        "status": "completed",
+        "threshold": 1,
+        "reason": "Evaluated 2 tool calls.\n\n1) list_engagements(): Tool definition requires an object input with no defined properties. The call passed no parameters, which is equivalent to providing an empty object. Th"
+      },
+      {
+        "name": "tool_selection",
+        "score": 1.0,
+        "passed": true,
+        "status": "completed",
+        "threshold": 1,
+        "reason": "1) User\u2019s query: \u201cPrep me for my Acme Internal AI Chatbot check-in.\u201d This is a general preparation request; to tailor the prep to the user\u2019s current work, the agent would ideally pull the user\u2019s curre"
+      },
+      {
+        "name": "tool_output_utilization",
+        "score": 1.0,
+        "passed": true,
+        "status": "completed",
+        "threshold": 1,
+        "reason": "All factual statements in the response (customer, status, target date, milestone, tasks, and risk) correctly match the prior tool outputs from list_engagements and get_engagement, with no incorrect re"
+      },
+      {
+        "name": "tool_call_success",
+        "score": 1.0,
+        "passed": true,
+        "status": "completed",
+        "threshold": 1,
+        "reason": "Both tool results explicitly report status \"succeeded\" and return well-formed JSON payloads with expected fields for listing engagements and fetching an engagement by ID. No errors, exceptions, null/e"
+      }
+    ]
+  },
+  {
+    "item_id": "ACME-5-full-conversation/update",
+    "turn": 8,
+    "harness_pass": true,
+    "query": "The data-privacy review slipped to August 12. Set it to Yellow with the exact reason 'Data-privacy review slipped to August 12'.",
+    "results": [
+      {
+        "name": "intent_resolution",
+        "score": 5.0,
+        "passed": true,
+        "status": "completed",
+        "threshold": 3,
+        "reason": "The user asked to set the status to Yellow and include the exact reason text 'Data-privacy review slipped to August 12'. The agent confirmed the item is now Yellow and repeated the reason verbatim, sa"
+      },
+      {
+        "name": "task_adherence",
+        "score": 1.0,
+        "passed": true,
+        "status": "completed",
+        "threshold": 0,
+        "reason": "The user requested setting the data-privacy review to Yellow with the exact reason text \u201cData-privacy review slipped to August 12.\u201d The assistant listed engagements, then updated the Acme Internal AI "
+      },
+      {
+        "name": "task_completion",
+        "score": 1.0,
+        "passed": true,
+        "status": "completed",
+        "threshold": 1,
+        "reason": "The user requested updating the engagement status to Yellow and setting the status note to the exact provided reason. The agent updated the correct engagement and confirmed it is Yellow with the exact"
+      },
+      {
+        "name": "tool_call_accuracy",
+        "score": 5.0,
+        "passed": true,
+        "status": "completed",
+        "threshold": 3,
+        "reason": "Let's think step by step: The user's last query/request is to update an engagement due to a slipped data-privacy review date, specifically: set it to Yellow and use the exact reason text 'Data-privacy"
+      },
+      {
+        "name": "tool_input_accuracy",
+        "score": 1.0,
+        "passed": true,
+        "status": "completed",
+        "threshold": 1,
+        "reason": "Evaluated 2 tool calls.\n\n1) list_engagements():\n- Parameters: none (empty object).\n- Tool definition allows an object with no properties; no required parameters.\n- Grounded and appropriate for finding"
+      },
+      {
+        "name": "tool_selection",
+        "score": 1.0,
+        "passed": true,
+        "status": "completed",
+        "threshold": 1,
+        "reason": "User request: update an engagement\u2019s status to Yellow with the exact reason \u201cData-privacy review slipped to August 12\u201d. To do this, the agent must identify the correct engagement_id (since set_engagem"
+      },
+      {
+        "name": "tool_output_utilization",
+        "score": 1.0,
+        "passed": true,
+        "status": "completed",
+        "threshold": 1,
+        "reason": "All tool-derived values used in the response (engagement name, new status, and status note) match the tool outputs, and the status update call correctly reused the engagement_id and exact note text."
+      },
+      {
+        "name": "tool_call_success",
+        "score": 1.0,
+        "passed": true,
+        "status": "completed",
+        "threshold": 1,
+        "reason": "Both tool calls returned structured JSON with success-like statuses and no error/exception fields. list_engagements shows status \"succeeded\" and includes an engagements array. set_engagement_status sh"
+      }
+    ]
+  },
+  {
+    "item_id": "ACME-5-full-conversation/open",
+    "turn": 9,
+    "harness_pass": true,
+    "query": "Open it.",
+    "results": [
+      {
+        "name": "intent_resolution",
+        "score": null,
+        "passed": null,
+        "status": "skipped",
+        "threshold": 3,
+        "reason": "Not applicable: Evaluation was skipped because the provided CONVERSATION_HISTORY content is not actually included (only says \u201cOpen it\u201d), so the user\u2019s intent in the final turn cannot be determined or "
+      },
+      {
+        "name": "task_adherence",
+        "score": 1.0,
+        "passed": true,
+        "status": "completed",
+        "threshold": 0,
+        "reason": "The user request was simply \u201cOpen it.\u201d The assistant used a navigation tool call to open the engagement overview for engagement_id=\"eng-acme-ai-chatbot\", and the tool result confirms it resolved and o"
+      },
+      {
+        "name": "task_completion",
+        "score": 0.0,
+        "passed": false,
+        "status": "completed",
+        "threshold": 1,
+        "reason": "The agent only reports that it navigated to and opened the \u201cAcme Internal AI Chatbot\u201d engagement overview. There is no indication of what the user\u2019s actual request was beyond opening a page, nor any s"
+      },
+      {
+        "name": "tool_call_accuracy",
+        "score": 2.0,
+        "passed": false,
+        "status": "completed",
+        "threshold": 3,
+        "reason": "Let's think step by step: 1) The user's last query is \"CONVERSATION : Open it.\", which requests access to the conversation content/context. 2) The available tools relate to engagement management (list"
+      },
+      {
+        "name": "tool_input_accuracy",
+        "score": 0.0,
+        "passed": false,
+        "status": "completed",
+        "threshold": 1,
+        "reason": "Tool call evaluated: navigate(destination_id=\"engagement_overview\", engagement_id=\"eng-acme-ai-chatbot\").\n\n1) Parameter Groundedness: The conversation/query only says \u201cOpen it.\u201d and provides no engage"
+      },
+      {
+        "name": "tool_selection",
+        "score": null,
+        "passed": null,
+        "status": "skipped",
+        "threshold": 1,
+        "reason": "Not applicable: status: skipped because the CONVERSATION content is not actually provided (it only says \"Open it.\"), so there is no user last query/context to judge whether calling `navigate` was appr"
+      },
+      {
+        "name": "tool_output_utilization",
+        "score": 0.0,
+        "passed": false,
+        "status": "completed",
+        "threshold": 1,
+        "reason": "The response claims \"Opened Acme Internal AI Chatbot\" but the only tool output confirms opening the path for engagement_id \"eng-acme-ai-chatbot\" and does not provide any engagement display name to sup"
+      },
+      {
+        "name": "tool_call_success",
+        "score": 1.0,
+        "passed": true,
+        "status": "completed",
+        "threshold": 1,
+        "reason": "The navigate tool returned a structured JSON response with status \"resolved\" and a message indicating the destination path was opened. There are no error fields, exceptions, timeouts, or malformed/emp"
+      }
+    ]
+  },
+  {
+    "item_id": "ACME-5-full-conversation/capture",
+    "turn": 10,
+    "harness_pass": true,
+    "query": "Add a task for me: send Dana the updated architecture diagram. High priority.",
+    "results": [
+      {
+        "name": "intent_resolution",
+        "score": 4.0,
+        "passed": true,
+        "status": "completed",
+        "threshold": 3,
+        "reason": "User asked to add a high-priority task to send Dana the updated architecture diagram. The agent confirmed creating a private task with the correct title, priority, and status. Minor gaps: no assignee "
+      },
+      {
+        "name": "task_adherence",
+        "score": 1.0,
+        "passed": true,
+        "status": "completed",
+        "threshold": 0,
+        "reason": "The user asked to add a high-priority task: \u201csend Dana the updated architecture diagram.\u201d The assistant created a task via a tool call with the matching title and priority set to High, and the tool re"
+      },
+      {
+        "name": "task_completion",
+        "score": 1.0,
+        "passed": true,
+        "status": "completed",
+        "threshold": 1,
+        "reason": "The user asked to add a high-priority task to send Dana the updated architecture diagram. The agent created a task with the correct title and marked it High priority, and confirmed key task fields, ma"
+      },
+      {
+        "name": "tool_call_accuracy",
+        "score": 5.0,
+        "passed": true,
+        "status": "completed",
+        "threshold": 3,
+        "reason": "Let's think step by step: The user's last query was: \"Add a task for me: send Dana the updated architecture diagram. High priority.\" The relevant available tool is create_task, which creates a private"
+      },
+      {
+        "name": "tool_input_accuracy",
+        "score": 1.0,
+        "passed": true,
+        "status": "completed",
+        "threshold": 1,
+        "reason": "Evaluated tool call: create_task(title=\"send Dana the updated architecture diagram\", priority=\"High\").\n\n1) Required parameters: Tool requires only `title`. Provided `title` is present.\n2) Parameter gr"
+      },
+      {
+        "name": "tool_selection",
+        "score": 1.0,
+        "passed": true,
+        "status": "completed",
+        "threshold": 1,
+        "reason": "1) User query: The user asked to \u201cAdd a task for me: send Dana the updated architecture diagram. High priority.\u201d This is a straightforward personal task-creation request.\n2) Conversation history: No p"
+      },
+      {
+        "name": "tool_output_utilization",
+        "score": 1.0,
+        "passed": true,
+        "status": "completed",
+        "threshold": 1,
+        "reason": "All tool-derived details in the agent response (title, priority, status, group, and due date) match the create_task tool result, and no prior tool outputs were reused incorrectly in new tool calls."
+      },
+      {
+        "name": "tool_call_success",
+        "score": 1.0,
+        "passed": true,
+        "status": "completed",
+        "threshold": 1,
+        "reason": "The create_task tool returned a structured JSON response indicating success (\u201cstatus\u201d: \u201ccommitted\u201d, \u201ccode\u201d: \u201ctask.create.committed\u201d) and includes a created task resource with an ID. There are no error"
+      }
+    ]
+  }
+]

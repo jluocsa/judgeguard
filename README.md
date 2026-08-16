@@ -431,6 +431,8 @@ receive, so `--variant` lets you measure that gap instead of arguing about it.
 - [Option conformance](docs/option-conformance.md) — comparing two retrieval backends honestly
 - [Writing adapters](docs/writing-adapters.md) — one class, one method
 - [Q&A case pack](corpus/qa-pod/README.md) — a real scenario matrix made executable
+- [Grading someone else's run](examples/csa-workbench/README.md) — ingesting a finished
+  Foundry run from another harness, and the number it refuses to print
 
 ## Contributing
 
