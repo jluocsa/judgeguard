@@ -127,6 +127,32 @@ any capability list. See [docs/evaluator-coverage.md](docs/evaluator-coverage.md
 
 The independence guard applies to every backend.
 
+## What will this cost
+
+```console
+$ judgeguard estimate --price-in 2.50 --price-out 10.00
+9 cases x 1 repeat, counting by ~4 chars/token
+
+dimension            calls          in       out  metered
+groundedness             9      19,413     2,250  tokens
+retrieval                9      40,631     2,250  tokens
+...
+retrieval_ranking        9           0         0  free
+
+TOTAL metered           63     171,997    15,750
+
+89% of input tokens is evaluator rubric, not your data (153,108 of 171,997).
+```
+
+The estimate is built from a **real retrieval run**, not from the corpus alone — the
+fields that dominate an evaluator's input are the retrieved context and the answer,
+and neither exists until something retrieves. That run uses the offline adapter, so
+estimating costs nothing.
+
+**judgeguard ships no price table.** Published rates change, vary by region and tier,
+and a stale number baked into a tool is worse than no number. Supply rates or get
+tokens only.
+
 ## Commands
 
 | Command | Purpose |
@@ -136,13 +162,14 @@ The independence guard applies to every backend.
 | `judgeguard run` | one provider, full transcripts |
 | `judgeguard bakeoff --a X --b Y` | two providers, one corpus, one comparison |
 | `judgeguard coverage` | the evaluator map and what each one requires |
+| `judgeguard estimate` | tokens and cost before you spend them |
 
 Exit codes: `0` pass, `1` a deterministic check failed, `2` a precondition failed.
 
 ## Status
 
 Alpha. The core is real and tested; these are specified and not yet built:
-`estimate`, `agree` (judge/human agreement), `label`, `corpus build`, the HTML report,
+`agree` (judge/human agreement), `label`, `corpus build`, the HTML report,
 OpenTelemetry emission, and the OpenAI scorer backend.
 
 The Foundry coverage map, row conversion and results merge are implemented and tested

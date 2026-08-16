@@ -94,6 +94,26 @@ judgeguard gate --scorer foundry
 The independence guard applies here too. Point both variables at the same deployment
 and judgeguard refuses to start, whichever scoring backend is selected.
 
+## What will it cost
+
+```bash
+judgeguard estimate --price-in 2.50 --price-out 10.00
+```
+
+The projection is built from a real (free) retrieval run, so the context and answer
+sizes are actual rather than assumed. Two things it surfaces that are hard to see
+otherwise:
+
+- **Template overhead dominates short cases.** Measured against 1.18.3, the rubrics
+  run from ~1,460 tokens (`groundedness_without_query`) to ~4,260 (`retrieval`). On the
+  bundled 9-case corpus that is **89% of all input tokens**. Trimming your corpus saves
+  far less than dropping a dimension you do not use.
+- **Not everything is token-billed.** `IndirectAttackEvaluator` is charged per service
+  call, and `DocumentRetrievalEvaluator` costs nothing at all.
+
+`estimate.measure_overhead()` re-derives the per-evaluator figures from whatever SDK
+version is installed, so the constants can be refreshed rather than trusted.
+
 ## Status
 
 The coverage map, the row conversion and the results merge are implemented and tested

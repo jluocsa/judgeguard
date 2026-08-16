@@ -79,6 +79,71 @@ def cmd_coverage(args) -> int:
     return EXIT_OK
 
 
+def cmd_estimate(args) -> int:
+    from .estimate import FREE, SERVICE, estimate_run
+
+    corpus = Corpus.load(args.corpus)
+    projection = estimate_run(
+        corpus,
+        backend=args.scorer or "foundry",
+        project=args.with_project,
+        repeat=args.repeat,
+        price_in=args.price_in,
+        price_out=args.price_out,
+        variant=args.variant,
+    )
+
+    if not projection.items:
+        print(f"{projection.backend}: no model calls, no cost.")
+        return EXIT_OK
+
+    width = max(len(i.dimension) for i in projection.items)
+    print(
+        f"{projection.cases} cases x {projection.repeat} repeat, "
+        f"counting by {projection.method}\n"
+    )
+    print(f"{'dimension':<{width}}  {'calls':>6}  {'in':>10}  {'out':>8}  metered")
+    for item in projection.items:
+        print(
+            f"{item.dimension:<{width}}  {item.calls:>6}  {item.input_tokens:>10,}  "
+            f"{item.output_tokens:>8,}  {item.metered}"
+        )
+    print(
+        f"\n{'TOTAL metered':<{width}}  {projection.calls:>6}  {projection.input_tokens:>10,}  "
+        f"{projection.output_tokens:>8,}"
+    )
+
+    share = projection.overhead_share
+    if share is not None:
+        print(
+            f"\n{share:.0%} of input tokens is evaluator rubric, not your data "
+            f"({projection.overhead_tokens:,} of {projection.input_tokens:,}).\n"
+            "Short cases pay mostly for the judge's instructions, so trimming the\n"
+            "corpus saves far less than dropping a dimension you do not use."
+        )
+
+    cost = projection.cost
+    if cost is None:
+        print(
+            "\nNo cost shown: pass --price-in and --price-out (rates per 1M tokens).\n"
+            "judgeguard ships no price table - published rates change and a stale\n"
+            "number baked into a tool is worse than none."
+        )
+    else:
+        print(f"\nestimated cost  {cost}  at {projection.price_in}/{projection.price_out} per 1M")
+
+    metered = projection.service_metered
+    if metered:
+        print(
+            f"\nNot included: {', '.join(i.dimension for i in metered)} "
+            "- billed per service call, not per token."
+        )
+    free = [i.dimension for i in projection.items if i.metered == FREE]
+    if free:
+        print(f"Free (computed locally, no model): {', '.join(free)}")
+    return EXIT_OK
+
+
 def cmd_run(args) -> int:
     result = _execute(args)
     print(summary(result))
@@ -146,6 +211,20 @@ def build_parser() -> argparse.ArgumentParser:
 
     cov = subparsers.add_parser("coverage", help="which evaluator covers which dimension")
     cov.set_defaults(func=cmd_coverage)
+
+    est = subparsers.add_parser("estimate", help="project tokens and cost for a judged run")
+    est.add_argument("--corpus", default=DEFAULT_CORPUS)
+    est.add_argument("--scorer", default="foundry", choices=["offline", "foundry"])
+    est.add_argument("--variant", default=None, choices=["keyword", "natural", "prefixed"])
+    est.add_argument("--repeat", type=int, default=1, help="consistency runs per case")
+    est.add_argument("--price-in", type=float, default=None, help="per 1M input tokens")
+    est.add_argument("--price-out", type=float, default=None, help="per 1M output tokens")
+    est.add_argument(
+        "--with-project",
+        action="store_true",
+        help="include evaluators needing a Foundry project connection",
+    )
+    est.set_defaults(func=cmd_estimate)
 
     runner = subparsers.add_parser("run", help="run one provider, write transcripts")
     common(runner)
