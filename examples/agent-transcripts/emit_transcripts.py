@@ -1,7 +1,8 @@
 """Emit judgeguard transcripts from an agent that owns its own tool loop.
 
 This is the contract the IDA harness has to satisfy to be graded. It is deliberately
-small: a transcript is a dataclass with nine fields, and everything judgeguard does
+small: a transcript is a dataclass with ten fields, five of them required, and everything
+judgeguard does
 downstream - both lanes, evidence levels, baselines, agreement, the Foundry dataset -
 reads from it and nothing else.
 

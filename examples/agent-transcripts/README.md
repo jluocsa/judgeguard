@@ -25,7 +25,8 @@ unchanged, because every one of them already reads the transcript and nothing el
 
 ## The contract
 
-Nine fields. `case_id` has to match a case in the corpus; the rest describe what happened.
+Ten fields, five of them required. `case_id` has to match a case in the corpus; the rest
+describe what happened.
 
 ```json
 {"case_id": "QA-01",

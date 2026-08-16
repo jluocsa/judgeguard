@@ -136,7 +136,7 @@ def build_steps(python: str) -> list[Step]:
             command=[python, "emit_transcripts.py"],
             cwd=HERE / "agent-transcripts",
             expect=("9 transcripts", "declared evidence: L2"),
-            beat="Nine fields per case. This is the harness integration point.",
+            beat="Ten fields per case, five required. The harness integration point.",
             show=4,
         ),
         Step(
