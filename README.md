@@ -48,7 +48,7 @@ is the cheapest honesty mechanism available.
 ## Quickstart
 
 ```bash
-git clone https://github.com/OWNER/judgeguard && cd judgeguard
+git clone https://github.com/jluocsa/judgeguard && cd judgeguard
 uv venv && uv pip install -e ".[dev]"
 
 .venv/bin/judgeguard doctor     # preflight
