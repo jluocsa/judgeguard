@@ -11,7 +11,7 @@ from __future__ import annotations
 
 import pytest
 
-from judgeguard.adapters import Bm25Retriever, CannedRetriever
+from judgeguard.adapters import Bm25Retriever, CannedRetriever, local_pair
 from judgeguard.contract import Identity, Passage, RetrievalResult, Retriever
 from judgeguard.corpus import Corpus
 from judgeguard.transcript import EVIDENCE_LEVELS, L1
@@ -22,10 +22,13 @@ def corpus():
     return Corpus.load("corpus")
 
 
-@pytest.fixture(params=["bm25", "canned"])
+@pytest.fixture(params=["bm25", "canned", "rag-search", "knowledge-base"])
 def adapter(request, corpus):
-    builders = {"bm25": Bm25Retriever, "canned": CannedRetriever}
-    return builders[request.param](corpus.documents)
+    if request.param in ("bm25", "canned"):
+        builders = {"bm25": Bm25Retriever, "canned": CannedRetriever}
+        return builders[request.param](corpus.documents)
+    rag, knowledge_base = local_pair(corpus.documents)
+    return rag if request.param == "rag-search" else knowledge_base
 
 
 def test_satisfies_the_protocol(adapter):

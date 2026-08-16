@@ -72,3 +72,30 @@ def adapter():
 Then run `pytest tests/conformance`. Two adapters that both pass this suite unchanged
 can be compared with `judgeguard bakeoff`, and a difference in the report is a
 difference in retrieval quality rather than a difference in behaviour.
+
+## If your backend is an MCP tool
+
+`adapters/mcp.py` carries the seam: a transport does the JSON-RPC, the adapter owns
+the arguments. That split matters because the arguments are where the authorization
+decision lives, and it is the part worth testing.
+
+```python
+from judgeguard.adapters.mcp import LocalCorpusTransport, constraint_from, FILTER
+
+class MyMcpRetriever:
+    name = "my-mcp"
+
+    def __init__(self, transport):
+        self._transport = transport
+        # Not a constant: a transport pointed at a local double has not shown
+        # that a real store enforced anything.
+        self.evidence_level = transport.evidence_level
+
+    def authorization_for(self, identity):
+        return constraint_from(identity, FILTER, my_filter(identity))
+```
+
+Exposing `authorization_for` lets the conformance suite compare *how* two backends
+authorize, not only what they returned — which is the difference between a caller
+that asserts its permissions and a service that enforces them. See
+[option-conformance.md](option-conformance.md).
