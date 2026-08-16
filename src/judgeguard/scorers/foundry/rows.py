@@ -51,6 +51,14 @@ def to_messages(
 
     `Case.prior_turns` is what makes the history reconstructable, which is why a
     multi-turn case has to declare it.
+
+    Microsoft Agent Framework solves the same problem in `AgentEvalConverter`, and
+    this function deliberately produces the identical shape. It is written out by
+    hand only because the deterministic lane carries no runtime dependencies and so
+    cannot import a framework to emit a dictionary. Two implementations of one wire
+    format drift silently - a shape that is merely close still returns numbers - so
+    `tests/test_message_shape_parity.py` asserts they are equal whenever
+    agent-framework-core is installed, and treats the framework as the authority.
     """
     query: list[dict[str, Any]] = [
         {"role": USER, "content": [{"type": "text", "text": turn}]}

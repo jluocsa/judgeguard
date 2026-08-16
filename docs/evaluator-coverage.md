@@ -72,8 +72,35 @@ completeness are not two shipped evaluators; `ResponseCompletenessEvaluator` is 
 that exists, and judgeguard names its dimension `response_completeness` after it rather
 than implying coverage it does not have.
 
-## Reference answers are not document identifiers
+## If you are building on Microsoft Agent Framework
 
+Use its evaluation support for the judge lane. It is more ergonomic than anything here
+and it is maintained by the people who own the wire format:
+
+| Agent Framework | What it does |
+|---|---|
+| `evaluate_agent()` | runs the agent, converts, evaluates - one call |
+| `AgentEvalConverter` | the typed message conversion Foundry evaluators need |
+| `evaluate_traces()` | grades runs that already happened, from OTel traces or response ids |
+
+Its evaluator catalog is also larger than the table above: it adds
+`task_navigation_efficiency`, `coherence`, `fluency`, `similarity` and the safety
+evaluators.
+
+judgeguard does not compete with that and should not. What it adds is the other lane -
+deterministic checks that can fail a build, evidence levels, the independence guard, and
+agreement statistics. **Agent Framework answers "how good was the answer". judgeguard
+answers "is this allowed to ship".** The two compose: grade with Agent Framework, gate
+with judgeguard.
+
+`rows.to_messages` exists only because the deterministic lane carries no runtime
+dependencies and so cannot import a framework to emit a dictionary. Its output is
+asserted equal to `AgentEvalConverter`'s in
+[`test_message_shape_parity.py`](../tests/test_message_shape_parity.py), which runs
+whenever `agent-framework-core` is installed. If that test fails after an upgrade, the
+framework is the authority.
+
+## Reference answers are not document identifiers
 `ResponseCompletenessEvaluator` scores a response against `ground_truth`, and
 `ground_truth` is reference **text**. A corpus case supplies it through
 `expected_answer`. `expected_sources` is a different field answering a different

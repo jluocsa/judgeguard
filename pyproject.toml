@@ -26,6 +26,9 @@ foundry = ["azure-ai-evaluation>=1.0", "azure-identity>=1.17"]
 search = ["azure-search-documents>=11.6", "azure-identity>=1.17"]
 otel = ["opentelemetry-sdk>=1.25"]
 dev = ["pytest>=8.0"]
+# Only used to assert that judgeguard's evaluator message shape still equals the
+# framework's. Not a runtime dependency, and not needed to run judgeguard.
+parity = ["agent-framework-core>=1.0"]
 
 [project.scripts]
 judgeguard = "judgeguard.cli:main"
