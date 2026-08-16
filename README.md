@@ -275,6 +275,19 @@ judgeguard coverage                  # which evaluator covers what, and what it 
 judgeguard gate --scorer foundry     # Azure AI Foundry evaluators
 ```
 
+**Building on [Microsoft Agent Framework](https://github.com/microsoft/agent-framework)?**
+Use its evaluation for the judge lane — `evaluate_agent()`, `evaluate_traces()` and a
+larger evaluator catalog than the one mapped here — and use judgeguard for the gate. One
+call bridges them:
+
+```python
+from judgeguard.bridges import transcript_from_agent_response
+
+transcript = transcript_from_agent_response(await agent.run(case.query), case)
+```
+
+See [docs/agent-framework.md](docs/agent-framework.md).
+
 Seven of the nine **stable** Foundry evaluators need only a bare model config — not a
 project connection. That is the difference between adopting a managed eval service
 being a config change and being a procurement conversation, and it is invisible from
@@ -429,6 +442,7 @@ receive, so `--variant` lets you measure that gap instead of arguing about it.
 ## Docs
 
 - [Two lanes](docs/two-lanes.md) — why judges must never gate
+- [Agent Framework](docs/agent-framework.md) — one call to bridge it; who owns which lane
 - [Evidence levels](docs/evidence-levels.md) — L0/L1/L2 and what each can prove
 - [Judge independence](docs/judge-independence.md) — the self-preference problem
 - [Evaluator coverage](docs/evaluator-coverage.md) — the Foundry map, verified by introspection
