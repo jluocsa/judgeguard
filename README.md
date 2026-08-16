@@ -2,7 +2,7 @@
 
 # judgeguard
 
-**Your LLM judge is grading its own homework. And it's failing your builds.**
+**Your LLM judge is grading its own homework. And it can fail your build.**
 
 [![ci](https://github.com/jluocsa/judgeguard/actions/workflows/ci.yml/badge.svg)](https://github.com/jluocsa/judgeguard/actions/workflows/ci.yml)
 [![license](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](LICENSE)
