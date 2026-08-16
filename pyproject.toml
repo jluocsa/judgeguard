@@ -1,0 +1,45 @@
+[project]
+name = "judgeguard"
+version = "0.1.0"
+description = "CI gate for RAG and agent evals. Deterministic checks block the build; LLM judges advise and never do."
+readme = "README.md"
+requires-python = ">=3.11"
+license = { file = "LICENSE" }
+keywords = ["rag", "llm-evaluation", "llm-as-judge", "agent-evaluation", "retrieval", "ci"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: Apache Software License",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Software Development :: Testing",
+]
+
+# The deterministic lane has zero runtime dependencies on purpose: `uvx judgeguard`
+# must reach a report with no install step, no API key and no network.
+dependencies = []
+
+[project.optional-dependencies]
+openai = ["openai>=1.40"]
+foundry = ["azure-ai-evaluation>=1.0", "azure-identity>=1.17"]
+search = ["azure-search-documents>=11.6", "azure-identity>=1.17"]
+otel = ["opentelemetry-sdk>=1.25"]
+dev = ["pytest>=8.0"]
+
+[project.scripts]
+judgeguard = "judgeguard.cli:main"
+
+[project.urls]
+Homepage = "https://github.com/OWNER/judgeguard"
+Issues = "https://github.com/OWNER/judgeguard/issues"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/judgeguard"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"

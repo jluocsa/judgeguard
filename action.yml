@@ -1,0 +1,54 @@
+name: judgeguard
+description: Gate a pull request on deterministic RAG and agent eval checks. Judge scores advise and never block.
+branding:
+  icon: shield
+  color: red
+
+inputs:
+  corpus:
+    description: Path to the corpus directory
+    default: corpus
+  provider:
+    description: Retrieval adapter to run
+    default: bm25
+  baseline:
+    description: Path to the saved baseline
+    default: .judgeguard/baseline.json
+  variant:
+    description: Restrict to one phrasing variant (keyword, natural, prefixed)
+    default: ""
+  python-version:
+    description: Python used to run judgeguard
+    default: "3.12"
+
+outputs:
+  exit-code:
+    description: 0 pass, 1 a deterministic check failed, 2 a precondition failed
+    value: ${{ steps.gate.outputs.exit-code }}
+
+runs:
+  using: composite
+  steps:
+    - uses: astral-sh/setup-uv@v7
+    - shell: bash
+      run: uv tool install judgeguard --python ${{ inputs.python-version }}
+    - id: gate
+      shell: bash
+      run: |
+        set +e
+        variant=""
+        if [ -n "${{ inputs.variant }}" ]; then variant="--variant ${{ inputs.variant }}"; fi
+        judgeguard gate \
+          --corpus "${{ inputs.corpus }}" \
+          --provider "${{ inputs.provider }}" \
+          --baseline "${{ inputs.baseline }}" \
+          $variant | tee "$RUNNER_TEMP/judgeguard.txt"
+        code=${PIPESTATUS[0]}
+        echo "exit-code=$code" >> "$GITHUB_OUTPUT"
+        {
+          echo '## judgeguard'
+          echo '```'
+          cat "$RUNNER_TEMP/judgeguard.txt"
+          echo '```'
+        } >> "$GITHUB_STEP_SUMMARY"
+        exit $code
