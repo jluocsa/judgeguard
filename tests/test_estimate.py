@@ -97,12 +97,35 @@ def test_overhead_is_tracked_and_dominates_short_cases(corpus):
 
 
 def test_every_token_metered_dimension_has_a_measured_overhead():
-    for spec in coverage.specs_for(coverage.MODEL_CONFIG):
+    """Only what can run in-process is priced, so only that needs a constant.
+
+    A service-only evaluator ships no local prompty. Requiring an overhead figure
+    for it would mean inventing one, and a fabricated constant is worse than an
+    absent dimension - `estimate_run` never bills for it either, because it prices
+    `runnable_with`.
+    """
+    local = coverage.runnable_with(
+        model_config=True, project=False, include_experimental=True
+    )
+    metered = [s for s in local if s.requires == coverage.MODEL_CONFIG]
+    assert metered
+    for spec in metered:
         assert spec.dimension in PROMPT_OVERHEAD_TOKENS, (
             f"{spec.dimension} has no measured prompt overhead, so its estimate "
             "would silently understate cost"
         )
         assert PROMPT_OVERHEAD_TOKENS[spec.dimension] > 0
+
+
+def test_a_service_only_evaluator_is_never_priced_locally():
+    service_only = [
+        s for s in coverage.COVERAGE if s.stability == coverage.SERVICE_ONLY
+    ]
+    assert service_only, "the map records at least one service-only evaluator"
+    local = coverage.runnable_with(
+        model_config=True, project=True, include_experimental=True
+    )
+    assert not (set(service_only) & set(local))
 
 
 def test_variant_filter_reduces_the_estimate(corpus):

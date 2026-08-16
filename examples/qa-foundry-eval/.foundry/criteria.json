@@ -1,0 +1,169 @@
+[
+  {
+    "type": "azure_ai_evaluator",
+    "name": "groundedness",
+    "evaluator_name": "builtin.groundedness",
+    "data_mapping": {
+      "query": "{{item.query}}",
+      "response": "{{item.response}}",
+      "context": "{{item.context}}"
+    },
+    "initialization_parameters": {
+      "deployment_name": "<judge-deployment>"
+    }
+  },
+  {
+    "type": "azure_ai_evaluator",
+    "name": "relevance",
+    "evaluator_name": "builtin.relevance",
+    "data_mapping": {
+      "query": "{{item.query}}",
+      "response": "{{item.response}}"
+    },
+    "initialization_parameters": {
+      "deployment_name": "<judge-deployment>"
+    }
+  },
+  {
+    "type": "azure_ai_evaluator",
+    "name": "retrieval",
+    "evaluator_name": "builtin.retrieval",
+    "data_mapping": {
+      "query": "{{item.query}}",
+      "context": "{{item.context}}"
+    },
+    "initialization_parameters": {
+      "deployment_name": "<judge-deployment>"
+    }
+  },
+  {
+    "type": "azure_ai_evaluator",
+    "name": "intent_resolution",
+    "evaluator_name": "builtin.intent_resolution",
+    "data_mapping": {
+      "query": "{{item.query_messages}}",
+      "response": "{{item.response_messages}}",
+      "tool_definitions": "{{item.tool_definitions}}"
+    },
+    "initialization_parameters": {
+      "deployment_name": "<judge-deployment>"
+    }
+  },
+  {
+    "type": "azure_ai_evaluator",
+    "name": "tool_call_accuracy",
+    "evaluator_name": "builtin.tool_call_accuracy",
+    "data_mapping": {
+      "query": "{{item.query_messages}}",
+      "response": "{{item.response_messages}}",
+      "tool_calls": "{{item.tool_calls}}",
+      "tool_definitions": "{{item.tool_definitions}}"
+    },
+    "initialization_parameters": {
+      "deployment_name": "<judge-deployment>"
+    }
+  },
+  {
+    "type": "azure_ai_evaluator",
+    "name": "task_adherence",
+    "evaluator_name": "builtin.task_adherence",
+    "data_mapping": {
+      "query": "{{item.query_messages}}",
+      "response": "{{item.response_messages}}",
+      "tool_definitions": "{{item.tool_definitions}}"
+    },
+    "initialization_parameters": {
+      "deployment_name": "<judge-deployment>"
+    }
+  },
+  {
+    "type": "azure_ai_evaluator",
+    "name": "response_completeness",
+    "evaluator_name": "builtin.response_completeness",
+    "data_mapping": {
+      "response": "{{item.response}}",
+      "ground_truth": "{{item.ground_truth}}"
+    },
+    "initialization_parameters": {
+      "deployment_name": "<judge-deployment>"
+    }
+  },
+  {
+    "type": "azure_ai_evaluator",
+    "name": "retrieval_ranking",
+    "evaluator_name": "builtin.document_retrieval",
+    "data_mapping": {
+      "retrieval_ground_truth": "{{item.retrieval_ground_truth}}",
+      "retrieved_documents": "{{item.retrieved_documents}}"
+    },
+    "initialization_parameters": {
+      "deployment_name": "<judge-deployment>"
+    }
+  },
+  {
+    "type": "azure_ai_evaluator",
+    "name": "tool_selection",
+    "evaluator_name": "builtin.tool_selection",
+    "data_mapping": {
+      "query": "{{item.query_messages}}",
+      "response": "{{item.response_messages}}",
+      "tool_calls": "{{item.tool_calls}}",
+      "tool_definitions": "{{item.tool_definitions}}"
+    },
+    "initialization_parameters": {
+      "deployment_name": "<judge-deployment>"
+    }
+  },
+  {
+    "type": "azure_ai_evaluator",
+    "name": "tool_input_accuracy",
+    "evaluator_name": "builtin.tool_input_accuracy",
+    "data_mapping": {
+      "query": "{{item.query_messages}}",
+      "response": "{{item.response_messages}}",
+      "tool_calls": "{{item.tool_calls}}",
+      "tool_definitions": "{{item.tool_definitions}}"
+    },
+    "initialization_parameters": {
+      "deployment_name": "<judge-deployment>"
+    }
+  },
+  {
+    "type": "azure_ai_evaluator",
+    "name": "tool_output_utilization",
+    "evaluator_name": "builtin.tool_output_utilization",
+    "data_mapping": {
+      "query": "{{item.query_messages}}",
+      "response": "{{item.response_messages}}",
+      "tool_definitions": "{{item.tool_definitions}}"
+    },
+    "initialization_parameters": {
+      "deployment_name": "<judge-deployment>"
+    }
+  },
+  {
+    "type": "azure_ai_evaluator",
+    "name": "tool_call_success",
+    "evaluator_name": "builtin.tool_call_success",
+    "data_mapping": {
+      "response": "{{item.response_messages}}",
+      "tool_definitions": "{{item.tool_definitions}}"
+    },
+    "initialization_parameters": {
+      "deployment_name": "<judge-deployment>"
+    }
+  },
+  {
+    "type": "azure_ai_evaluator",
+    "name": "task_completion",
+    "evaluator_name": "builtin.task_completion",
+    "data_mapping": {
+      "query": "{{item.query_messages}}",
+      "response": "{{item.response_messages}}",
+      "tool_definitions": "{{item.tool_definitions}}"
+    },
+    "initialization_parameters": {
+      "deployment_name": "<judge-deployment>"
+    }
+  }
+]

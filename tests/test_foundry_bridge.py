@@ -62,7 +62,9 @@ def test_experimental_evaluators_are_opt_in():
     opted_in = coverage.runnable_with(
         model_config=True, project=True, include_experimental=True
     )
-    assert len(opted_in) == len(coverage.COVERAGE)
+    # Everything except the service-only tier, which has no class to construct.
+    local = [s for s in coverage.COVERAGE if s.stability != coverage.SERVICE_ONLY]
+    assert len(opted_in) == len(local)
     assert set(default) < set(opted_in)
 
 

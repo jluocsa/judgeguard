@@ -26,6 +26,77 @@ CONTEXT_SEPARATOR = "\n\n"
 # need graded labels in the corpus; inventing a spread here would fabricate them.
 EXPECTED_SOURCE_RELEVANCE = 4
 
+USER = "user"
+ASSISTANT = "assistant"
+TOOL = "tool"
+
+
+def to_messages(
+    transcript: Transcript, case: Case
+) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
+    """Build the message-shaped `query` and `response` the agent evaluators want.
+
+    Two shapes exist and they are not interchangeable. Reference-scored and RAG
+    evaluators read `query`, `response` and `context` as plain strings. The agent
+    evaluators read a conversation: `query` is the history up to and including the
+    user's turn, `response` is what the agent produced, with tool calls and tool
+    results as typed content blocks rather than prose.
+
+    Handing an agent evaluator a bare string is not a hard failure, which is what
+    makes it dangerous. The service falls back to raw input, logs that accuracy will
+    degrade, and still returns a number. Worse, a terse follow-up such as "Open it."
+    carries no referent without the prior turns, and evaluators observed skipping
+    outright with "the CONVERSATION_HISTORY content is not actually provided" - a
+    silent deflation that reads downstream as an agent that performed badly.
+
+    `Case.prior_turns` is what makes the history reconstructable, which is why a
+    multi-turn case has to declare it.
+    """
+    query: list[dict[str, Any]] = [
+        {"role": USER, "content": [{"type": "text", "text": turn}]}
+        for turn in case.prior_turns
+    ]
+    query.append(
+        {"role": USER, "content": [{"type": "text", "text": transcript.query}]}
+    )
+
+    response: list[dict[str, Any]] = []
+    for index, call in enumerate(transcript.tool_calls):
+        call_id = f"call_{transcript.case_id}_{index}"
+        response.append(
+            {
+                "role": ASSISTANT,
+                "content": [
+                    {
+                        "type": "tool_call",
+                        "tool_call_id": call_id,
+                        "name": call.name,
+                        "arguments": call.arguments,
+                    }
+                ],
+            }
+        )
+        response.append(
+            {
+                "role": TOOL,
+                "tool_call_id": call_id,
+                "content": [
+                    {
+                        "type": "tool_result",
+                        "tool_result": call.error if call.error else call.result,
+                    }
+                ],
+            }
+        )
+    if transcript.answer:
+        response.append(
+            {
+                "role": ASSISTANT,
+                "content": [{"type": "text", "text": transcript.answer}],
+            }
+        )
+    return query, response
+
 
 def to_eval_row(
     transcript: Transcript,
@@ -36,6 +107,7 @@ def to_eval_row(
 ) -> dict[str, Any]:
     """The union row. Each evaluator is later handed only the fields it declares."""
     passages = transcript.passages
+    query_messages, response_messages = to_messages(transcript, case)
     return {
         # judgeguard provenance - not consumed by evaluators, carried so a score
         # can always be traced back to the run and the level that produced it.
@@ -43,11 +115,16 @@ def to_eval_row(
         "evidence_level": transcript.evidence_level,
         "provider": transcript.provider,
         "variant": case.variant,
-        # evaluator inputs
+        # evaluator inputs, string-shaped: RAG and reference-scored evaluators
         "query": transcript.query,
         "response": transcript.answer,
         "context": CONTEXT_SEPARATOR.join(p.get("text", "") for p in passages),
         "system_message": system_message,
+        # evaluator inputs, message-shaped: agent evaluators. Both shapes ship on
+        # every row and each evaluator's data mapping selects the one it reads,
+        # because the same field name means different things to the two families.
+        "query_messages": query_messages,
+        "response_messages": response_messages,
         "tool_calls": [
             {
                 "type": "tool_call",

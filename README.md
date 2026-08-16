@@ -329,6 +329,7 @@ and get copied into forks. A stale number baked into a tool is worse than no num
 | `judgeguard bakeoff --a X --b Y` | two providers, one corpus, one comparison |
 | `judgeguard coverage` | the evaluator map and what each one requires |
 | `judgeguard estimate` | tokens and cost before you spend them |
+| `judgeguard emit-dataset` | Foundry-ready rows, with the gate verdict on each |
 | `judgeguard label` | emit a sheet for human labelling |
 | `judgeguard agree` | kappa between gate, judge and humans |
 
@@ -431,6 +432,8 @@ receive, so `--variant` lets you measure that gap instead of arguing about it.
 - [Option conformance](docs/option-conformance.md) — comparing two retrieval backends honestly
 - [Writing adapters](docs/writing-adapters.md) — one class, one method
 - [Q&A case pack](corpus/qa-pod/README.md) — a real scenario matrix made executable
+- [Foundry eval, end to end](examples/qa-foundry-eval/README.md) — the full pipeline, the
+  thirteen evaluators, and the payload trap that silently deflates agent scores
 - [Grading someone else's run](examples/csa-workbench/README.md) — ingesting a finished
   Foundry run from another harness, and the number it refuses to print
 

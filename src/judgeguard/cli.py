@@ -17,6 +17,7 @@ from .adapters import build
 from .candidates import TemplateCandidate
 from .corpus import Corpus
 from .gate import EXIT_OK, EXIT_PRECONDITION_FAILED, exit_code
+from .lanes.deterministic import PASS
 from .report import markdown, summary
 from .runner import run
 from .scorers import build as build_scorer
@@ -256,6 +257,60 @@ def cmd_gate(args) -> int:
     return code
 
 
+def cmd_emit_dataset(args) -> int:
+    """Write one Foundry-ready row per case, and the criteria that consume them.
+
+    The deterministic verdict rides *with* each row rather than in a separate
+    report. That is what lets a reviewer see, on one line, that a judge scored a
+    turn well and the gate rejected it - which is the disagreement worth reading.
+    """
+    import json
+
+    from .scorers.foundry import coverage as cov
+    from .scorers.foundry.rows import to_eval_row, ungradable_reason
+
+    result = _execute(args)
+    out = Path(args.out)
+    out.mkdir(parents=True, exist_ok=True)
+    dataset = out / args.dataset
+
+    specs = cov.service_specs(stable_only=args.stable_only)
+    skipped: dict[str, int] = {}
+    written = 0
+    with dataset.open("w", encoding="utf-8") as handle:
+        for outcome in result.outcomes:
+            row = to_eval_row(outcome.transcript, outcome.case)
+            for spec in specs:
+                if ungradable_reason(spec, row):
+                    skipped[spec.dimension] = skipped.get(spec.dimension, 0) + 1
+            row["item_id"] = outcome.case.id
+            row["gate_verdict"] = outcome.verdict
+            row["gate_pass"] = outcome.verdict == PASS
+            handle.write(json.dumps(row, ensure_ascii=False) + "\n")
+            written += 1
+
+    print(f"{written} rows -> {dataset}")
+    print(f"{len(specs)} evaluators requested, {result.evidence_level} evidence")
+    for dimension, count in sorted(skipped.items()):
+        print(f"    {dimension}: {count}/{written} rows carry no reference to grade")
+
+    if args.criteria:
+        criteria = out / args.criteria
+        criteria.write_text(
+            json.dumps(cov.testing_criteria("<judge-deployment>",
+                                            stable_only=args.stable_only),
+                       indent=2) + "\n",
+            encoding="utf-8",
+        )
+        print(f"criteria    -> {criteria}")
+
+    print(
+        "\nThe gate verdict rides with each row. Upload scores the advisory lane;\n"
+        "it cannot change what `judgeguard gate` already decided."
+    )
+    return EXIT_OK
+
+
 def cmd_bakeoff(args) -> int:
     results = [_execute(args, provider=p) for p in (args.a, args.b)]
     for result in results:
@@ -340,6 +395,25 @@ def build_parser() -> argparse.ArgumentParser:
     bakeoff.add_argument("--a", default="canned")
     bakeoff.add_argument("--b", default="bm25")
     bakeoff.set_defaults(func=cmd_bakeoff, provider="bm25")
+
+    emit = subparsers.add_parser(
+        "emit-dataset", help="write Foundry-ready evaluation rows for this corpus"
+    )
+    common(emit)
+    emit.add_argument("--provider", default="bm25")
+    emit.add_argument("--dataset", default="dataset.jsonl")
+    emit.add_argument(
+        "--criteria",
+        default="criteria.json",
+        help="also write the testing criteria payload; empty string to skip",
+    )
+    emit.add_argument(
+        "--stable-only",
+        action="store_true",
+        help="omit evaluators the SDK ships as experimental; they are ordinary "
+        "names on the service, so they are included by default here",
+    )
+    emit.set_defaults(func=cmd_emit_dataset)
 
     label = subparsers.add_parser("label", help="emit a sheet for human labelling")
     common(label)
