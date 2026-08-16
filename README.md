@@ -153,6 +153,33 @@ estimating costs nothing.
 and a stale number baked into a tool is worse than no number. Supply rates or get
 tokens only.
 
+## Is your judge any good?
+
+Once a judge stops gating, its quality becomes measurable instead of assumed.
+
+```console
+$ judgeguard label          # emit a sheet, fill the label column
+$ judgeguard agree
+
+human vs gate   n=9
+  kappa    0.4  (fair)
+  observed 78%, expected by chance 63%
+
+human vs judge  n=9
+  kappa    0.0  (none or worse than chance)
+  observed 67%, expected by chance 67%
+```
+
+Read those two blocks together. The judge agrees with the human **67% of the time**
+and is worth **nothing** — it says "acceptable" to everything, so agreeing with it
+carries no information. Raw agreement cannot tell you that. Cohen's kappa can, because
+it subtracts the agreement you would get by chance.
+
+This is the payoff of the two-lane split: a judge that cannot fail your build can be
+swapped, tuned and *measured*, and you can find out it is useless before you trust it.
+
+Self-judged scores are excluded from every statistic here.
+
 ## Commands
 
 | Command | Purpose |
@@ -163,14 +190,15 @@ tokens only.
 | `judgeguard bakeoff --a X --b Y` | two providers, one corpus, one comparison |
 | `judgeguard coverage` | the evaluator map and what each one requires |
 | `judgeguard estimate` | tokens and cost before you spend them |
+| `judgeguard label` | emit a sheet for human labelling |
+| `judgeguard agree` | kappa between gate, judge and humans |
 
 Exit codes: `0` pass, `1` a deterministic check failed, `2` a precondition failed.
 
 ## Status
 
 Alpha. The core is real and tested; these are specified and not yet built:
-`agree` (judge/human agreement), `label`, `corpus build`, the HTML report,
-OpenTelemetry emission, and the OpenAI scorer backend.
+`corpus build`, the HTML report, OpenTelemetry emission, and the OpenAI scorer backend.
 
 The Foundry coverage map, row conversion and results merge are implemented and tested
 offline. The live service call has not been run against a real endpoint.

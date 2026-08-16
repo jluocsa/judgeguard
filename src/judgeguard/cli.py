@@ -144,6 +144,37 @@ def cmd_estimate(args) -> int:
     return EXIT_OK
 
 
+def cmd_label(args) -> int:
+    from .labeling import SheetExists, emit
+
+    result = _execute(args)
+    try:
+        written = emit(args.sheet, result, force=args.force)
+    except SheetExists as exc:
+        print(f"\u2717 {exc}", file=sys.stderr)
+        return EXIT_PRECONDITION_FAILED
+    print(
+        f"{written} rows written to {args.sheet}\n"
+        "Fill the `label` column with acceptable or unacceptable, then run "
+        "`judgeguard agree`."
+    )
+    return EXIT_OK
+
+
+def cmd_agree(args) -> int:
+    from .agreement import compare, render
+    from .labeling import load
+
+    result = _execute(args)
+    labels = None
+    if Path(args.sheet).exists():
+        labels = load(args.sheet)
+    else:
+        print(f"note: no label sheet at {args.sheet}, comparing gate and judge only\n")
+    print(render(compare(result, labels, threshold=args.judge_threshold)))
+    return EXIT_OK
+
+
 def cmd_run(args) -> int:
     result = _execute(args)
     print(summary(result))
@@ -243,6 +274,20 @@ def build_parser() -> argparse.ArgumentParser:
     bakeoff.add_argument("--a", default="canned")
     bakeoff.add_argument("--b", default="bm25")
     bakeoff.set_defaults(func=cmd_bakeoff, provider="bm25")
+
+    label = subparsers.add_parser("label", help="emit a sheet for human labelling")
+    common(label)
+    label.add_argument("--provider", default="bm25")
+    label.add_argument("--sheet", default=f"{DEFAULT_OUT}/labels.csv")
+    label.add_argument("--force", action="store_true", help="overwrite existing labels")
+    label.set_defaults(func=cmd_label)
+
+    agree = subparsers.add_parser("agree", help="kappa between gate, judge and humans")
+    common(agree)
+    agree.add_argument("--provider", default="bm25")
+    agree.add_argument("--sheet", default=f"{DEFAULT_OUT}/labels.csv")
+    agree.add_argument("--judge-threshold", type=float, default=3.0)
+    agree.set_defaults(func=cmd_agree)
     return parser
 
 

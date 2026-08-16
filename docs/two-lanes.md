@@ -30,10 +30,21 @@ Once a judge stops gating, three things become possible that were not before.
 
 - **Agreement becomes countable.** With a verdict beside every score, you can measure
   how often the judge agrees with ground truth instead of asserting that it does.
+  `judgeguard agree` reports Cohen's kappa across gate, judge and human labels.
 - **Judges can be swapped.** Changing judge model is a reporting change, not a release
   risk, so you can actually evaluate your evaluator.
 - **Scores can be granular.** A number nobody has to defend as a gate can be a 0-10
   with reasoning, rather than a threshold argument.
+
+### Why kappa and not raw agreement
+
+On the bundled corpus the stub judge agrees with a human labeller 67% of the time and
+is worth nothing, because it answers "acceptable" to everything. Raw agreement rewards
+a constant rater; kappa subtracts the agreement chance would have produced anyway and
+reports 0.
+
+Any judge that mostly passes things will look good on raw agreement. That is the
+number most teams quote, and it is the number that hides a broken evaluator.
 
 ## How the split is enforced
 
