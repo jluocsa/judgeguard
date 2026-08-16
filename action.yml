@@ -31,7 +31,13 @@ runs:
   steps:
     - uses: astral-sh/setup-uv@v7
     - shell: bash
-      run: uv tool install git+https://github.com/jluocsa/judgeguard --python ${{ inputs.python-version }}
+      # Install the ref the action was pinned to, not whatever main happens to be.
+      # Without this, `@v0.1.0` pins the action definition and silently tracks the
+      # default branch for the code that actually runs.
+      run: |
+        uv tool install \
+          "git+https://github.com/jluocsa/judgeguard@${{ github.action_ref || 'main' }}" \
+          --python ${{ inputs.python-version }}
     - id: gate
       shell: bash
       run: |
