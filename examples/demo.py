@@ -115,7 +115,9 @@ def build_steps(python: str) -> list[Step]:
                 "    disagreement is the agent behaving correctly - a refusal it was\n"
                 "    right to make, a clarification it was right to ask."
             ),
-            show=22,
+            # Shown whole: the disagreement list at the end is the point of the
+            # segment, and eliding it would hide the finding to save eight lines.
+            show=60,
         ),
         Step(
             segment=2,
