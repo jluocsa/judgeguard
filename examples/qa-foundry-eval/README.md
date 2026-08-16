@@ -142,6 +142,42 @@ export JUDGEGUARD_CANDIDATE_DEPLOYMENT=gpt-4o-candidate   # must differ
 judgeguard enforces the same rule for its in-process scorer. It has to hold on the upload
 path too, or the guarantee is only as good as which route someone happened to take.
 
+## What has and has not been executed
+
+Read this before demoing live.
+
+| | Status |
+|---|---|
+| `judgeguard gate` on the pack | run, repeatedly |
+| `judgeguard emit-dataset` | run; the committed `.foundry/` output is from a real run |
+| `foundry_eval.py --dry-run` | run |
+| `foundry_eval.py` upload | **never executed against a Foundry project** |
+
+The upload flow is modelled line by line on `scripts/foundry_eval.py` in
+[CSA Workbench](https://github.com/DanGiannone1/csa-workbench) — the same two-step
+`evals.create` then `evals.runs.create` against the OpenAI-compatible client, the same
+`DataSourceConfigCustom` item schema, the same polling loop. That script demonstrably
+works against a real project. This one has only been checked for argument handling and
+failure ordering.
+
+**So rehearse the upload before the demo, or run it in `--dry-run`.** The `item_schema`
+here declares judgeguard's row fields rather than CSA Workbench's, and a schema mismatch
+is the most likely thing to surface on a first real run.
+
+## What this demo does not show
+
+It grades **retrieval**, not the IDA harness. The evidence level says so — `L1`, real
+retrieval and mocked generation. The answer is templated, so `groundedness` and
+`relevance` are scoring a template rather than a model.
+
+Grading the harness itself needs the harness to emit transcripts and judgeguard to ingest
+them. That path is prototyped in [`../csa-workbench`](../csa-workbench) but is not yet a
+shipped command, and until it is, no demo can honestly claim to evaluate the IDA harness
+end to end.
+
+The corpus is also synthetic. `corpus/qa-pod` encodes the pod's QA-01…QA-09 case shapes
+over invented documents, not IDA's real knowledge base.
+
 ## Where the pattern came from
 
 The upload flow follows `scripts/foundry_eval.py` in

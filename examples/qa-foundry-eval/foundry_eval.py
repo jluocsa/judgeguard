@@ -22,9 +22,36 @@ import json
 import os
 import sys
 import time
+from datetime import datetime, timezone
 from pathlib import Path
 
 from judgeguard.scorers.foundry import coverage
+
+POLL_SECONDS = 5
+
+# Describes the rows `judgeguard emit-dataset` writes. Both payload shapes are
+# declared because both are on every row: the string fields feed the RAG evaluators
+# and the *_messages arrays feed the agent evaluators.
+ITEM_SCHEMA = {
+    "type": "object",
+    "properties": {
+        "item_id": {"type": "string"},
+        "query": {"type": "string"},
+        "response": {"type": "string"},
+        "context": {"type": "string"},
+        "ground_truth": {"type": "string"},
+        "query_messages": {"type": "array"},
+        "response_messages": {"type": "array"},
+        "tool_calls": {"type": "array"},
+        "tool_definitions": {"type": "array"},
+        "retrieved_documents": {"type": "array"},
+        "retrieval_ground_truth": {"type": "array"},
+        "gate_verdict": {"type": "string"},
+        "gate_pass": {"type": "boolean"},
+        "evidence_level": {"type": "string"},
+    },
+    "required": [],
+}
 
 
 def resolve_judge() -> str:
@@ -103,24 +130,69 @@ def main() -> int:
     try:
         from azure.ai.projects import AIProjectClient
         from azure.identity import DefaultAzureCredential
+        from openai.types.eval_create_params import DataSourceConfigCustom
+        from openai.types.evals.create_eval_jsonl_run_data_source_param import (
+            CreateEvalJSONLRunDataSourceParam,
+            SourceFileID,
+        )
     except ImportError as exc:
         raise SystemExit(
-            "needs the project SDK: pip install azure-ai-projects azure-identity"
+            "needs the project SDK: pip install azure-ai-projects azure-identity openai"
         ) from exc
 
-    client = AIProjectClient(endpoint=endpoint, credential=DefaultAzureCredential())
+    stamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
     print(f"rows:   {len(rows)}")
     print(f"judge:  {judge}")
 
-    uploaded = client.datasets.upload_file(
-        name=arguments.name, version=str(int(time.time())), file_path=arguments.dataset
-    )
-    evaluation = client.evaluations.create(
-        name=arguments.name,
-        data_source={"type": "dataset", "id": uploaded.id},
-        testing_criteria=criteria,
-    )
-    print(f"run:    {evaluation.id}")
+    with (
+        DefaultAzureCredential() as credential,
+        AIProjectClient(endpoint=endpoint, credential=credential) as project,
+        project.get_openai_client() as openai_client,
+    ):
+        print("\nuploading dataset...")
+        uploaded = project.datasets.upload_file(
+            name=f"{arguments.name}-data-{stamp}",
+            version="1",
+            file_path=str(arguments.dataset),
+        )
+        print(f"  dataset id: {uploaded.id}")
+
+        print("creating evaluation...")
+        evaluation = openai_client.evals.create(
+            name=f"{arguments.name}-eval",
+            data_source_config=DataSourceConfigCustom(
+                {
+                    "type": "custom",
+                    "item_schema": ITEM_SCHEMA,
+                    "include_sample_schema": True,
+                }
+            ),
+            testing_criteria=criteria,
+        )
+        print(f"  eval id: {evaluation.id}")
+
+        print("starting run...")
+        run = openai_client.evals.runs.create(
+            eval_id=evaluation.id,
+            name=f"{arguments.name}-{stamp}",
+            data_source=CreateEvalJSONLRunDataSourceParam(
+                type="jsonl", source=SourceFileID(type="file_id", id=uploaded.id)
+            ),
+        )
+        print(f"  run id: {run.id}")
+
+        while run.status not in ("completed", "failed"):
+            time.sleep(POLL_SECONDS)
+            run = openai_client.evals.runs.retrieve(
+                run_id=run.id, eval_id=evaluation.id
+            )
+            print(f"  status: {run.status}")
+
+        print(f"\nstatus:     {run.status}")
+        print(f"report URL: {getattr(run, 'report_url', '(none returned)')}")
+        if run.status != "completed":
+            return 1
+
     print("\nScores land in the advisory lane. They cannot change what the")
     print("deterministic gate already decided, which rides on every row.")
     return 0
