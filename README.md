@@ -98,6 +98,8 @@ uv venv && uv pip install -e ".[dev]"
 
 judgeguard doctor          # preflight: independence, corpus, adapter conformance
 judgeguard gate            # the CI entrypoint
+
+python examples/demo.py    # a guided tour of everything below, with live status
 ```
 
 Point it at your own cases by writing two JSONL files and passing `--corpus`:
